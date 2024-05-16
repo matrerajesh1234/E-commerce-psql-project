@@ -17,3 +17,41 @@ export const sendResponse = (res, statusCode, message, data) => {
     data,
   });
 };
+export const paginatedResponse = (data, pageCount, limitCount, totalCount) => {
+  const totalPage = limitCount === 0 ? 0 : Math.ceil(totalCount / limitCount);
+  return {
+    list: data,
+    page: pageCount,
+    limit: limitCount,
+    totalRecords: totalCount,
+    totalPage: totalPage,
+  };
+};
+
+export const search = (search, fields) => {
+  if (search) {
+    const query = fields
+      .map((field, index) => `"${field}" ILIKE '%' || $${index + 1} || '%'`)
+      .join(" OR ");
+    const params = fields.map((field) => {
+      return search;
+    });
+    return { query: query, params: params };
+  }
+  return {
+    query: "",
+    params: [],
+  };
+};
+
+export const paginationAndSorting = (query, defaultSorting = "id") => {
+  const { page, limit, sortBy, sortOrder } = query;
+  const pageCount = Number(page) || 1;
+  const limitCount = Number(limit) || 10;
+  const sortField = sortBy || defaultSorting;
+  const sortOrderValue = sortOrder === "asc" ? "ASC" : "DESC";
+  const skip = (pageCount - 1) * limitCount;
+  const sorting = `${sortField} ${sortOrderValue}`;
+
+  return { pageCount, limitCount, sorting, skip, sortField, sortOrderValue };
+};
