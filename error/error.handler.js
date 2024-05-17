@@ -1,4 +1,4 @@
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res) {
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   const stack = err.stack || "";

@@ -4,7 +4,11 @@ import {
   NotFoundError,
 } from "../error/custom.error.handler.js";
 import * as productServices from "../services/product.services.js";
-import { paginationAndSorting, sendResponse,paginatedResponse } from "../utils/services.js";
+import {
+  paginationAndSorting,
+  sendResponse,
+  paginatedResponse,
+} from "../utils/services.js";
 import { search } from "../utils/services.js";
 
 export const createProduct = async (req, res, next) => {

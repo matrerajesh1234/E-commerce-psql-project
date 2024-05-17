@@ -8,9 +8,7 @@ import { sendResponse } from "../utils/services.js";
 export const createCategory = async (req, res, next) => {
   try {
     const categoryName = req.body.categoryName;
-    if (!categoryName) {
-      throw new BadRequestError("Please provide a category name");
-    }
+
     const uniqueCategory = await categoryServices.categoryFindOne({
       categoryName: categoryName,
     });
