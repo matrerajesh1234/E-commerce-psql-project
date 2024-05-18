@@ -12,6 +12,7 @@ router.post(
   validationMiddleware(productSchemas.filesSchema),
   productController.createProduct
 );
+
 router.get(
   "/listproducts",
   validationMiddleware(productSchemas.query.ValidListRequest, "query"),
