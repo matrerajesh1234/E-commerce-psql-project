@@ -55,14 +55,13 @@ export const productSchemas = {
       .messages({
         "number.positive": "Rating should be a positive number",
       }),
-    reviews: Joi.number().integer().positive().optional().allow(null).messages({
-      "number.integer": "Reviews should be an integer",
-      "number.positive": "Reviews should be a positive number",
+    reviews: Joi.string().optional().allow(null).messages({
+      "string.base": "Review should be a string",
     }),
     brand: Joi.string().optional().allow(null),
     categoryId: Joi.array().items(Joi.string().required()).required().messages({
-      "array.base": "Category ID should be an array",
-      "any.required": "Category ID is required",
+      "array.base": "Category Id should be an array",
+      "any.required": "Category Id is required",
     }),
   }),
 

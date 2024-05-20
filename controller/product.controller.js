@@ -1,4 +1,3 @@
-import pool from "../config/database.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -8,12 +7,12 @@ import {
   paginationAndSorting,
   sendResponse,
   paginatedResponse,
+  search,
 } from "../utils/services.js";
-import { search } from "../utils/services.js";
 
 export const createProduct = async (req, res, next) => {
   try {
-    const [existingProduct] = await productServices.productFindOne({
+    const [existingProduct] = await productServices.getProducts({
       productName: req.body.productName,
     });
 
@@ -23,7 +22,7 @@ export const createProduct = async (req, res, next) => {
 
     const newProduct = await productServices.createNewProduct(req.body);
 
-    const uploadProductImage = await productServices.uploadImage(
+    const productImage = await productServices.uploadImage(
       req.files,
       newProduct[0].id
     );
@@ -70,7 +69,7 @@ export const listAllProduct = async (req, res, next) => {
 
 export const editProduct = async (req, res, next) => {
   try {
-    const singleProduct = await productServices.productFindOne({
+    const [singleProduct] = await productServices.getProducts({
       id: req.params.id,
     });
     if (!singleProduct) {
@@ -85,7 +84,7 @@ export const editProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    const checkProduct = await productServices.productFindOne(
+    const [checkProduct] = await productServices.getProducts(
       { id: req.params.id },
       "and"
     );
@@ -107,7 +106,7 @@ export const updateProduct = async (req, res, next) => {
 
 export const deleteProduct = async (req, res, next) => {
   try {
-    const checkProduct = await productServices.productFindOne(
+    const [checkProduct] = await productServices.getProducts(
       { id: req.params.id },
       "and"
     );

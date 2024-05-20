@@ -24,14 +24,14 @@ export const uploadImage = async (files, productInfo) => {
     })
     .join(", ");
 
-  const imageValues = files
+  const imageParams = files
     .map((file) => {
       return [productInfo, file.path];
     })
     .flat();
 
   const imageQueryString = `INSERT INTO imageProducts("productId","imageUrl") VALUES ${whereClause}`;
-  const { rows } = await pool.query(imageQueryString, imageValues);
+  const { rows } = await pool.query(imageQueryString, imageParams);
   return rows;
 };
 
@@ -58,20 +58,18 @@ export const productRelation = async (body, productInfo) => {
   return rows;
 };
 
-export const productFindOne = async (filter, operator = "and") => {
-  const values = Object.values(filter);
-  const whereClause = Object.entries(filter)
+export const getProducts = async (filter = {}, operator = "and") => {
+  const productQuery = Object.entries(filter)
     .map(([key, value], i) => {
       return `"${key}" = $${i + 1}`;
     })
-    .join(` ${operator} `);
-  const queryString = `SELECT * FROM public.products WHERE ${whereClause}`;
-  const { rows } = await pool.query(queryString, values);
-  return rows;
-};
+    .join(`${operator}`);
 
-export const productList = async () => {
-  const { rows } = await pool.query(`SELECT * FROM public.products`);
+  const whereClause = Object.keys(filter).length == 0 ? " " : `where ${productQuery}`;
+
+  const values = Object.values(filter);
+  const queryString = `select * from public.products ${whereClause}`;
+  const { rows } = await pool.query(queryString, values);
   return rows;
 };
 
@@ -100,18 +98,6 @@ export const updateProduct = async (filter, productData, operator = "and") => {
 
   const response = await pool.query(queryText, queryValues);
   return response;
-};
-
-export const deleteProduct = async (filter, operator = "and") => {
-  const whereClause = Object.entries(filter)
-    .map(([key, value], i) => {
-      return `"${key}" = $${i + 1}`;
-    })
-    .join(`${operator}`);
-  const values = Object.values(filter);
-  const queryString = `delete from public.products where ${whereClause}`;
-  const { rows } = await pool.query(queryString, values);
-  return rows;
 };
 
 export const filterPagination = async (searchResult) => {
@@ -191,4 +177,17 @@ export const paginateFilteredResults = async (pagination, searchQuery) => {
   const { rows } = await pool.query(finalQueryString, queryParams);
   const productResult = rows;
   return productResult;
+};
+
+export const deleteProduct = async (filter, operator = "and") => {
+  const whereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(`${operator}`);
+  const values = Object.values(filter);
+  const queryString = `delete from public.products where ${whereClause}`;
+  console.log(queryString);
+  const { rows } = await pool.query(queryString, values);
+  return rows;
 };

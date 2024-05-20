@@ -31,31 +31,15 @@ export const updateCategory = async (
   const queryText = `
     UPDATE public.categories
     SET ${categoryWhereClause}
-    WHERE ${filterWhereClause};
+    WHERE "isDeleted" = false and ${filterWhereClause};
   `;
+  console.log(queryText);
 
   const queryValues = [...filterValues, ...categoryValues];
 
   const response = await pool.query(queryText, queryValues);
   return response;
-};
-
-export const getAllCategories = async () => {
-  const { rows } = await pool.query(`SELECT * FROM public.categories`);
-  return rows;
-};
-
-export const categoryFindOne = async (filter, operator = "and") => {
-  const values = Object.values(filter);
-  const whereClause = Object.entries(filter)
-    .map(([key, value], i) => {
-      return `"${key}" = $${i + 1}`;
-    })
-    .join(` ${operator} `);
-  const queryString = `SELECT * FROM public.categoires WHERE ${whereClause}`;
-  const { rows } = await pool.query(queryString, values);
-  return rows;
-};
+};``
 
 export const getCategories = async (filter = {}, operator = "and") => {
   const categoryQuery = Object.entries(filter)
@@ -64,21 +48,12 @@ export const getCategories = async (filter = {}, operator = "and") => {
     })
     .join(`${operator}`);
 
-  const whereClause = filter == {} ? " " : `where ${categoryQuery}`;
+  const whereClause =
+    Object.keys(filter).length == 0 ? " " : `and ${categoryQuery}`;
 
   const values = Object.values(filter);
-  const queryString = `select * from public.categories ${whereClause}`;
+  const queryString = `select * from public.categories where "isDeleted"= false ${whereClause}`;
   const { rows } = await pool.query(queryString, values);
   return rows;
 };
-export const deleteCategory = async (filter, operator = "and") => {
-  const whereClause = Object.entries(filter)
-    .map(([key, value], i) => {
-      return `"${key}" = $${i + 1}`;
-    })
-    .join(`${operator}`);
-  const values = Object.values(filter);
-  const queryString = `delete from public.categories where ${whereClause}`;
-  const { rows } = await pool.query(queryString, values);
-  return rows;
-};
+

@@ -7,7 +7,7 @@ import { sendResponse } from "../utils/services.js";
 
 export const createCategory = async (req, res, next) => {
   try {
-    const [checkUniqueCategory] = await categoryServices.categoryFindOne({
+    const [checkUniqueCategory] = await categoryServices.getCategories({
       categoryName: req.body.categoryName,
     });
     if (checkUniqueCategory) {
@@ -71,6 +71,14 @@ export const updateCategory = async (req, res, next) => {
       throw new BadRequestError("Category not found");
     }
 
+    const [productExits] = await categoryServices.getCategories({
+      categoryName: req.body.categoryName,
+    });
+
+    if (productExits) {
+      throw new BadRequestError("Product with the same name already exists.");
+    }
+
     const updatedCategory = await categoryServices.updateCategory(
       { id: req.params.id },
       req.body,
@@ -93,8 +101,9 @@ export const deleteCategory = async (req, res, next) => {
       throw new NotFoundError("Category not found");
     }
 
-    const deletedCategory = await categoryServices.deleteCategory(
+    const deletedCategory = await categoryServices.updateCategory(
       { id: req.params.id },
+      { isDeleted: true, isActive: false },
       "and"
     );
 

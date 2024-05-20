@@ -16,10 +16,10 @@ export const connectDatabase = (req, res, next) => {
   pool
     .connect()
     .then(() => {
-      console.log(`Database Creation Successfully`);
+      console.log(`Database connected Successfully`);
     })
     .catch((error) => {
-      console.log(`Databse Falied to connect ${error.message}`);
+      console.log(`Databse Falied to connect: ${error.message}`);
     });
 };
 

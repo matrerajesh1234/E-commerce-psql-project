@@ -13,10 +13,11 @@ app.use(express.urlencoded({ extended: false }));
 
 // router
 app.use("/", indexRouter);
+//static files
 app.use("/uploads", express.static("uploads"));
 
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+  console.log(`Server running on port: http://localhost:${process.env.PORT}`);
 });
