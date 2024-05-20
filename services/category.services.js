@@ -1,8 +1,9 @@
+import { query } from "express";
 import pool from "../config/database.js";
 
 export const createCategory = async (categoryName) => {
   const { rows } = await pool.query(
-    `INSERT INTO categories ("categoryName") values($1) RETURNING *`,
+    `INSERT INTO public.categories ("categoryName") VALUES($1) RETURNING *`,
     [categoryName]
   );
   return rows;
@@ -10,25 +11,27 @@ export const createCategory = async (categoryName) => {
 
 export const updateCategory = async (
   filter,
-  operator = "and",
-  categoryData
+  categoryData,
+  operator = "and"
 ) => {
-  const filterKeys = Object.keys(filter);
   const filterValues = Object.values(filter);
-  const filterPlaceholders = filterKeys
-    .map((key, i) => `"${key}"=$${i + 1}`)
+  const filterWhereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
     .join(` ${operator} `);
 
-  const categoryKeys = Object.keys(categoryData);
   const categoryValues = Object.values(categoryData);
-  const categoryPlaceholders = categoryKeys
-    .map((key, i) => `"${key}"=$${filterValues.length + i + 1}`)
+  const categoryWhereClause = Object.entries(categoryData)
+    .map(([key, value], i) => {
+      return `"${key}" = $${filterValues.length + i + 1}`;
+    })
     .join(", ");
 
   const queryText = `
-    UPDATE categories
-    SET ${categoryPlaceholders}
-    WHERE ${filterPlaceholders};
+    UPDATE public.categories
+    SET ${categoryWhereClause}
+    WHERE ${filterWhereClause};
   `;
 
   const queryValues = [...filterValues, ...categoryValues];
@@ -37,29 +40,45 @@ export const updateCategory = async (
   return response;
 };
 
-export const getAllCategory = async () => {
-  const { rows } = await pool.query(`SELECT * FROM categories`);
+export const getAllCategories = async () => {
+  const { rows } = await pool.query(`SELECT * FROM public.categories`);
   return rows;
 };
 
 export const categoryFindOne = async (filter, operator = "and") => {
-  const keys = Object.keys(filter);
   const values = Object.values(filter);
-  const placeholder = keys
-    .map((key, i) => `"${key}"=$${i + 1}`)
+  const whereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
     .join(` ${operator} `);
-  const queryText = `SELECT * FROM categories WHERE ${placeholder}`;
-  const { rows } = await pool.query(queryText, values);
-  return rows[0];
+  const queryString = `SELECT * FROM public.categoires WHERE ${whereClause}`;
+  const { rows } = await pool.query(queryString, values);
+  return rows;
 };
 
-export const deleteCategory = async (filter, operator = "and") => {
-  const keys = Object.keys(filter);
+export const getCategories = async (filter = {}, operator = "and") => {
+  const categoryQuery = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(`${operator}`);
+
+  const whereClause = filter == {} ? " " : `where ${categoryQuery}`;
+
   const values = Object.values(filter);
-  const placeholder = keys
-    .map((key, i) => `"${key}"=$${i + 1}`)
-    .join(` ${operator} `);
-  const queryText = `DELETE FROM categories WHERE ${placeholder}`;
-  const { rows } = await pool.query(queryText, values);
+  const queryString = `select * from public.categories ${whereClause}`;
+  const { rows } = await pool.query(queryString, values);
+  return rows;
+};
+export const deleteCategory = async (filter, operator = "and") => {
+  const whereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(`${operator}`);
+  const values = Object.values(filter);
+  const queryString = `delete from public.categories where ${whereClause}`;
+  const { rows } = await pool.query(queryString, values);
   return rows;
 };

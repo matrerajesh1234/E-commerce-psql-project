@@ -7,33 +7,33 @@ import { sendResponse } from "../utils/services.js";
 
 export const createCategory = async (req, res, next) => {
   try {
-    const categoryName = req.body.categoryName;
-
-    const uniqueCategory = await categoryServices.categoryFindOne({
-      categoryName: categoryName,
+    const [checkUniqueCategory] = await categoryServices.categoryFindOne({
+      categoryName: req.body.categoryName,
     });
-
-    if (uniqueCategory) {
+    if (checkUniqueCategory) {
       throw new NotFoundError("Category already exists");
     }
 
-    const newCategory = await categoryServices.createCategory(categoryName);
-    if (!newCategory) {
-      throw new BadRequestError(
-        "Falied to create a category. Please try again later"
-      );
-    }
-    return sendResponse(res, 200, "categoryCreated", newCategory);
+    const newCategory = await categoryServices.createCategory(
+      req.body.categoryName
+    );
+
+    return sendResponse(res, 200, "Category created successfully", newCategory);
   } catch (error) {
     next(error);
   }
 };
 
-export const getAllCategory = async (req, res, next) => {
+export const getAllCategories = async (req, res, next) => {
   try {
-    const categoryList = await categoryServices.getAllCategory();
+    const categories = await categoryServices.getCategories();
 
-    return sendResponse(res, 200, "Category list", categoryList);
+    return sendResponse(
+      res,
+      200,
+      "Category list retrieved successfully",
+      categories
+    );
   } catch (error) {
     next(error);
   }
@@ -41,17 +41,22 @@ export const getAllCategory = async (req, res, next) => {
 
 export const editCategory = async (req, res, next) => {
   try {
-    const singleCategory = await categoryServices.categoryFindOne(
-      {
-        id: req.params.id,
-      },
+    const [foundCategory] = await categoryServices.getCategories(
+      { id: req.params.id },
       "and"
     );
-    if (!singleCategory || singleCategory.length == 0) {
+    console.log(foundCategory);
+
+    if (!foundCategory) {
       throw new NotFoundError("Category not found");
     }
 
-    return sendResponse(res, 200, "Category Detail", singleCategory);
+    return sendResponse(
+      res,
+      200,
+      "Category details retrieved successfully",
+      foundCategory
+    );
   } catch (error) {
     next(error);
   }
@@ -59,20 +64,20 @@ export const editCategory = async (req, res, next) => {
 
 export const updateCategory = async (req, res, next) => {
   try {
-    const checkCategory = await categoryServices.categoryFindOne({
+    const [existingCategory] = await categoryServices.getCategories({
       id: req.params.id,
     });
+    if (!existingCategory) {
+      throw new BadRequestError("Category not found");
+    }
 
     const updatedCategory = await categoryServices.updateCategory(
       { id: req.params.id },
-      "and",
-      req.body
+      req.body,
+      "and"
     );
-    if (updatedCategory.rowCount == 0) {
-      throw new BadRequestError("Category not found or could not be updated");
-    }
 
-    return sendResponse(res, 200, "Category updated");
+    return sendResponse(res, 200, "Category updated successfully");
   } catch (error) {
     next(error);
   }
@@ -80,10 +85,11 @@ export const updateCategory = async (req, res, next) => {
 
 export const deleteCategory = async (req, res, next) => {
   try {
-    const checkCategory = await categoryServices.categoryFindOne({
+    const [existingCategory] = await categoryServices.getCategories({
       id: req.params.id,
     });
-    if (!checkCategory || checkCategory.length == 0) {
+
+    if (!existingCategory) {
       throw new NotFoundError("Category not found");
     }
 
@@ -91,9 +97,6 @@ export const deleteCategory = async (req, res, next) => {
       { id: req.params.id },
       "and"
     );
-    if (deletedCategory.rowCount == 0) {
-      throw new BadRequestError("Category not found or could not be deleted");
-    }
 
     return sendResponse(res, 200, "Delete category successfully");
   } catch (error) {

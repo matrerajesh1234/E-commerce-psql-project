@@ -1,65 +1,100 @@
 import pool from "../config/database.js";
 
-export const createNewProduct = async (
-  productName,
-  productDetails,
-  description,
-  price,
-  color,
-  rating,
-  reviews,
-  brand
-) => {
+export const createNewProduct = async (body) => {
   const { rows } = await pool.query(
-    `INSERT INTO products("productName", "productDetails", "description", "price", "color","rating","reviews","brand") VALUES($1, $2, $3, $4, $5,$6,$7,$8) RETURNING *`,
+    `INSERT INTO public.products("productName", "productDetails", "description", "price", "color", "rating", "reviews", "brand") VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
     [
-      productName,
-      productDetails,
-      description,
-      price,
-      color,
-      rating,
-      reviews,
-      brand,
+      body.productName,
+      body.productDetails,
+      body.description,
+      body.price,
+      body.color,
+      body.rating,
+      body.reviews,
+      body.brand,
     ]
   );
   return rows;
 };
 
-export const productFindOne = async (filter, operator = "and") => {
-  const keys = Object.keys(filter);
-  const values = Object.values(filter);
-  const placeholder = keys
-    .map((key, i) => `"${key}"= $${i + 1}`)
-    .join(` ${operator} `);
-  const queryText = `SELECT * FROM products WHERE ${placeholder}`;
-  const { rows } = await pool.query(queryText, values);
-  return rows[0];
-};
+export const uploadImage = async (files, productInfo) => {
+  const whereClause = files
+    .map((file, index) => {
+      return `($${index * 2 + 1},$${index * 2 + 2})`;
+    })
+    .join(", ");
 
-export const productList = async () => {
-  const { rows } = await pool.query(`select * from products`);
+  const imageValues = files
+    .map((file) => {
+      return [productInfo, file.path];
+    })
+    .flat();
+
+  const imageQueryString = `INSERT INTO imageProducts("productId","imageUrl") VALUES ${whereClause}`;
+  const { rows } = await pool.query(imageQueryString, imageValues);
   return rows;
 };
 
-export const updateProduct = async (filter, operator = "and", productData) => {
-  const filterKeys = Object.keys(filter);
-  const filterValues = Object.values(filter);
-  const filterPlaceholders = filterKeys
-    .map((key, i) => `"${key}"=$${i + 1}`)
-    .join(` ${operator} `);
+export const productRelation = async (body, productInfo) => {
+  const categoryId = Array.isArray(body.categoryId)
+    ? body.categoryId
+    : [body.categoryId];
 
-  const productDataKeys = Object.keys(productData);
-  const productDataValues = Object.values(productData);
-  const productDataPlaceholders = productDataKeys
-    .map((key, i) => `"${key}"=$${filterValues.length + i + 1}`)
+  const whereClause = categoryId
+    .map((_, index) => {
+      return `($${index * 2 + 1},$${index * 2 + 2})`;
+    })
     .join(", ");
 
+  const categoryParams = categoryId
+    .map((categoryId) => {
+      return [productInfo, categoryId];
+    })
+    .flat();
+
+  const productCategoryString = `INSERT INTO productcategoryrelation("productId","categoryId") VALUES ${whereClause}`;
+
+  const { rows } = await pool.query(productCategoryString, categoryParams);
+  return rows;
+};
+
+export const productFindOne = async (filter, operator = "and") => {
+  const values = Object.values(filter);
+  const whereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(` ${operator} `);
+  const queryString = `SELECT * FROM public.products WHERE ${whereClause}`;
+  const { rows } = await pool.query(queryString, values);
+  return rows;
+};
+
+export const productList = async () => {
+  const { rows } = await pool.query(`SELECT * FROM public.products`);
+  return rows;
+};
+
+export const updateProduct = async (filter, productData, operator = "and") => {
+  const filterValues = Object.values(filter);
+  const filterWhereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(`${operator}`);
+
+  const productDataValues = Object.values(productData);
+  const productWhereClause = Object.entries(productData)
+    .map(([key, value], i) => {
+      return `"${key}" = $${filterValues.length + i + 1}`;
+    })
+    .join(`${operator}`);
+
   const queryText = `
-      UPDATE products
-      SET ${productDataPlaceholders}
-      WHERE ${filterPlaceholders};
-    `;
+    UPDATE public.products
+    SET ${productWhereClause}
+    WHERE ${filterWhereClause};
+  `;
 
   const queryValues = [...filterValues, ...productDataValues];
 
@@ -68,13 +103,14 @@ export const updateProduct = async (filter, operator = "and", productData) => {
 };
 
 export const deleteProduct = async (filter, operator = "and") => {
-  const keys = Object.keys(filter);
+  const whereClause = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(`${operator}`);
   const values = Object.values(filter);
-  const placeholder = keys
-    .map((key, i) => `${key} = $${i + 1}`)
-    .join(` ${operator}`);
-  const queryText = `delete from products where ${placeholder}`;
-  const { rows } = await pool.query(queryText, values);
+  const queryString = `delete from public.products where ${whereClause}`;
+  const { rows } = await pool.query(queryString, values);
   return rows;
 };
 
@@ -83,26 +119,26 @@ export const filterPagination = async (searchResult) => {
   const whereClause = searchResult.query ? `WHERE ${searchResult.query}` : " ";
   const baseUrl = process.env.BASEURL;
   const searchQuery = `
-    SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color",p."rating",p."reviews",p."brand",
+    SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand",
       (
         SELECT json_agg(json_build_object('id', pr.id, 'categoryName', c."categoryName"))
-        FROM productcategoryrelation pr
-        LEFT JOIN categories c ON pr."categoryId" = c.id
+        FROM public.productcategoryrelation pr
+        LEFT JOIN public.categories c ON pr."categoryId" = c.id
         WHERE pr."productId" = p.id 
-      ) AS Categories,
+      ) AS categories,
       (
         SELECT json_agg(json_build_object('id', i.id, 'imageUrl', $${
           searchParams.length + 1
         } || i."imageUrl"))
-        FROM imageproducts i
+        FROM public.imageproducts i
         WHERE i."productId" = p.id
       ) AS images
-    FROM products p
-    LEFT JOIN productcategoryrelation pr ON pr."productId" = p.id
-    LEFT JOIN categories c ON pr."categoryId" = c.id
-    LEFT JOIN imageproducts i ON i."productId" = p.id
+    FROM public.products p
+    LEFT JOIN public.productcategoryrelation pr ON pr."productId" = p.id
+    LEFT JOIN public.categories c ON pr."categoryId" = c.id
+    LEFT JOIN public.imageproducts i ON i."productId" = p.id
     ${whereClause}
-    GROUP BY p.id, p."productName", p."description", p."productDetails", p."price", p."color",p."rating",p."reviews",p."brand"
+    GROUP BY p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand"
   `;
 
   const queryParams = [...searchResult.params, baseUrl];
@@ -119,28 +155,28 @@ export const paginateFilteredResults = async (pagination, searchQuery) => {
   const whereClause = searchQueryString ? `WHERE ${searchQueryString}` : " ";
 
   const finalQueryString = `
-    SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color",p."rating",p."reviews",p."brand",
+    SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand",
       (
         SELECT json_agg(json_build_object('id', pr.id, 'categoryName', c."categoryName"))
-        FROM productcategoryrelation pr
-        LEFT JOIN categories c ON pr."categoryId" = c.id
+        FROM public.productcategoryrelation pr
+        LEFT JOIN public.categories c ON pr."categoryId" = c.id
         WHERE pr."productId" = p.id 
-      ) AS Categories,
+      ) AS categories,
       (
         SELECT json_agg(json_build_object('id', i.id, 'imageUrl', $${
           searchParams.length + 1
         } || i."imageUrl"))
-        FROM imageproducts i
+        FROM public.imageproducts i
         WHERE i."productId" = p.id
       ) AS images
-    FROM products p
-    LEFT JOIN productcategoryrelation pr ON pr."productId" = p.id
-    LEFT JOIN categories c ON pr."categoryId" = c.id
-    LEFT JOIN imageproducts i ON i."productId" = p.id
+    FROM public.products p
+    LEFT JOIN public.productcategoryrelation pr ON pr."productId" = p.id
+    LEFT JOIN public.categories c ON pr."categoryId" = c.id
+    LEFT JOIN public.imageproducts i ON i."productId" = p.id
     ${whereClause}
-    GROUP BY p.id, p."productName", p."description", p."productDetails", p."price", p."color",p."rating",p."reviews",p."brand"
-    ORDER BY $${searchParams.length + 2} , $${searchParams.length + 3}
-    LIMIT  $${searchParams.length + 4} offset $${searchParams.length + 5}
+    GROUP BY p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand"
+    ORDER BY $${searchParams.length + 2}, $${searchParams.length + 3}
+    LIMIT  $${searchParams.length + 4} OFFSET $${searchParams.length + 5}
   `;
 
   const queryParams = [

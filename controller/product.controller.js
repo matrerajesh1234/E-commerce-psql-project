@@ -13,84 +13,27 @@ import { search } from "../utils/services.js";
 
 export const createProduct = async (req, res, next) => {
   try {
-    const { productName, productDetails, price, color } = req.body;
-
-    if (!productName || !productDetails || !price || !color) {
-      throw new BadRequestError("Please provide require field");
-    }
-
-    const { description, rating, reviews, brand } = req.body;
-
-    const checkProductExits = await productServices.productFindOne({
-      productName: productName,
+    const [existingProduct] = await productServices.productFindOne({
+      productName: req.body.productName,
     });
 
-    if (checkProductExits) {
-      throw new BadRequestError("Product Already Exists");
+    if (existingProduct) {
+      throw new BadRequestError("Product already exists.");
     }
 
-    const newProduct = await productServices.createNewProduct(
-      productName,
-      productDetails,
-      description,
-      price,
-      color,
-      rating,
-      reviews,
-      brand
+    const newProduct = await productServices.createNewProduct(req.body);
+
+    const uploadProductImage = await productServices.uploadImage(
+      req.files,
+      newProduct[0].id
     );
 
-    if (!newProduct) {
-      throw new BadRequestError("Product Creation Failed");
-    }
-
-    const imageString = req.files
-      .map((file, index) => {
-        return `($${index * 2 + 1},$${index * 2 + 2})`;
-      })
-      .join(", ");
-
-    const imageParams = req.files
-      .map((file) => {
-        return [newProduct[0].id, file.path];
-      })
-      .flat();
-
-    const imageQueryString = `insert into imageProducts("productId","imageUrl") values ${imageString}`;
-    const imageProduct = await pool.query(imageQueryString, imageParams);
-
-    if (!imageProduct) {
-      throw new BadRequestError("Failed to store image please try again later");
-    }
-
-    const productCategoryId = Array.isArray(req.body.categoryId)
-      ? req.body.categoryId
-      : [req.body.categoryId];
-
-    const categoryValues = productCategoryId
-      .map((categoryid, index) => {
-        return `($${index * 2 + 1},$${index * 2 + 2})`;
-      })
-      .join(", ");
-
-    const categoryParams = productCategoryId
-      .map((categoryid) => {
-        return [newProduct[0].id, categoryid];
-      })
-      .flat();
-
-    const productCategoryString = `insert into productcategoryrelation("productId","categoryId") values ${categoryValues}`;
-
-    const productCategoryQuery = await pool.query(
-      productCategoryString,
-      categoryParams
+    const productCategoryRelation = await productServices.productRelation(
+      req.body,
+      newProduct[0].id
     );
 
-    if (!productCategoryQuery) {
-      throw new BadRequestError("Failed to store the productCategoy");
-    }
-
-    return sendResponse(res, 200, "Product Created Successfully", newProduct);
+    return sendResponse(res, 200, "Product created successfully", newProduct);
   } catch (error) {
     next(error);
   }
@@ -109,11 +52,7 @@ export const listAllProduct = async (req, res, next) => {
       searchQuery
     );
     if (!productResult) {
-      throw new NotFoundError("Product Not Found");
-    }
-
-    if (productResult.length === 0) {
-      return sendResponse(res, 200, "Product Not Found");
+      throw new NotFoundError("Product not found.");
     }
 
     const paginatedData = paginatedResponse(
@@ -123,7 +62,7 @@ export const listAllProduct = async (req, res, next) => {
       totalResultCount
     );
 
-    return sendResponse(res, 200, "Product List", paginatedData);
+    return sendResponse(res, 200, "Product list", paginatedData);
   } catch (error) {
     next(error);
   }
@@ -134,11 +73,11 @@ export const editProduct = async (req, res, next) => {
     const singleProduct = await productServices.productFindOne({
       id: req.params.id,
     });
-    if (!singleProduct || singleProduct.length == 0) {
-      throw new NotFoundError("Product Not Found");
+    if (!singleProduct) {
+      throw new NotFoundError("Product not found.");
     }
 
-    return sendResponse(res, 200, "Product Detail", singleProduct);
+    return sendResponse(res, 200, "Product detail", singleProduct);
   } catch (error) {
     next(error);
   }
@@ -150,20 +89,17 @@ export const updateProduct = async (req, res, next) => {
       { id: req.params.id },
       "and"
     );
-    if (!checkProduct || checkProduct.length == 0) {
-      throw new NotFoundError("Product Not Found");
+    if (!checkProduct) {
+      throw new NotFoundError("Product not found.");
     }
 
     const updatedProduct = await productServices.updateProduct(
       { id: req.params.id },
-      "and",
-      req.body
+      req.body,
+      "and"
     );
-    if (updatedProduct.rowCount == 0) {
-      throw new BadRequestError("Product Not Updated Something went Wrong");
-    }
 
-    return sendResponse(res, 200, "Product Updated Successfully");
+    return sendResponse(res, 200, "Product updated successfully");
   } catch (error) {
     next(error);
   }
@@ -171,23 +107,20 @@ export const updateProduct = async (req, res, next) => {
 
 export const deleteProduct = async (req, res, next) => {
   try {
-    const checkProductId = await productServices.productFindOne(
+    const checkProduct = await productServices.productFindOne(
       { id: req.params.id },
       "and"
     );
-    if (!checkProductId || checkProductId.length == 0) {
-      throw new NotFoundError("Product Not Found");
+    if (!checkProduct) {
+      throw new NotFoundError("Product not found.");
     }
 
     const deletedProduct = await productServices.deleteProduct(
       { id: req.params.id },
       "and"
     );
-    if (deletedProduct.rowCount == 0) {
-      throw new BadRequestError("Product Not Deleted Something went Wrong");
-    }
 
-    return sendResponse(res, 200, "Product Successfully Deleted");
+    return sendResponse(res, 200, "Product successfully deleted");
   } catch (error) {
     next(error);
   }

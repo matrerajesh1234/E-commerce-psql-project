@@ -27,23 +27,19 @@ export const paginatedResponse = (data, pageCount, limitCount, totalCount) => {
     totalPage: totalPage,
   };
 };
-
 export const search = (search, fields) => {
   if (search) {
     const query = fields
-      .map((field, index) => `"${field}" ILIKE '%' || $${index + 1} || '%'`)
+      .map((field, index) => `"${field}" ILIKE '%' || $${1} || '%'`)
       .join(" OR ");
-    const params = fields.map((field) => {
-      return search;
-    });
-    return { query: query, params: params };
+
+    return { query: query, params: [search] };
   }
   return {
     query: "",
     params: [],
   };
 };
-
 export const paginationAndSorting = (query, defaultSorting = "id") => {
   const { page, limit, sortBy, sortOrder } = query;
   const pageCount = Number(page) || 1;
@@ -51,7 +47,6 @@ export const paginationAndSorting = (query, defaultSorting = "id") => {
   const sortField = sortBy || defaultSorting;
   const sortOrderValue = sortOrder === "asc" ? "ASC" : "DESC";
   const skip = (pageCount - 1) * limitCount;
-  const sorting = `${sortField} ${sortOrderValue}`;
 
-  return { pageCount, limitCount, sorting, skip, sortField, sortOrderValue };
+  return { pageCount, limitCount, skip, sortField, sortOrderValue };
 };

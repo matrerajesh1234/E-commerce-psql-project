@@ -19,7 +19,7 @@ export const connectDatabase = (req, res, next) => {
       console.log(`Database Creation Successfully`);
     })
     .catch((error) => {
-      console.log(`Databse Falied to connect`);
+      console.log(`Databse Falied to connect ${error.message}`);
     });
 };
 

@@ -5,14 +5,12 @@ class RequestError extends Error {
     this.statusCode = statusCode;
   }
 }
-
 class BadRequestError extends Error {
   constructor(message) {
     super(message, 400);
     this.message;
   }
 }
-
 class NotFoundError extends Error {
   constructor(message) {
     super(message, 404);

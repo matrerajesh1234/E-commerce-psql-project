@@ -1,29 +1,29 @@
 import express from "express";
 const router = express.Router();
-import * as categoryController from "../controller/category.controller.js";
+import { categoryController } from "../controller/index.js";
 import { validationMiddleware } from "../middleware/validation.middleware.js";
 import { categorySchemas } from "../validation//index.js";
 
 router.post(
   "/insertcategory",
-  validationMiddleware(categorySchemas.body.ValidCreateCategory, "body"),
+  validationMiddleware(categorySchemas.body.validCategoryName, "body"),
   categoryController.createCategory
 );
-router.get("/listcategory", categoryController.getAllCategory);
+router.get("/listcategory", categoryController.getAllCategories);
 router.get(
   "/editcategory/:id",
-  validationMiddleware(categorySchemas.params.ValidCategoryId),
+  validationMiddleware(categorySchemas.params.validCategoryId),
   categoryController.editCategory
 );
 router.put(
   "/updatecategory/:id",
-  validationMiddleware(categorySchemas.params.ValidCategoryId, "params"),
-  validationMiddleware(categorySchemas.body.ValidUpdateCategory, "body"),
+  validationMiddleware(categorySchemas.params.validCategoryId, "params"),
+  validationMiddleware(categorySchemas.body.validCategoryName, "body"),
   categoryController.updateCategory
 );
 router.delete(
   "/deletecategory/:id",
-  validationMiddleware(categorySchemas.params.ValidCategoryId),
+  validationMiddleware(categorySchemas.params.validCategoryId),
   categoryController.deleteCategory
 );
 

@@ -1,19 +1,15 @@
-function errorHandler(err, req, res) {
+import { sendResponse } from "../utils/services.js";
+
+function errorHandler(err, req, res, next) {
+  // next parameter is important to use
   const statusCode = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
-  const stack = err.stack || "";
-  const route = req.originalUrl || "";
-  const type = err.name || "";
-
-  return res.status(statusCode).json({
-    success: false,
-    message: message,
-    data: {
-      stack: stack,
-      route: route,
-      type: type,
-    },
-  });
+  const errInfo = {
+    stack: err.stack || "",
+    route: err.originalUrl || "",
+    type: err.name || "",
+  };
+  return sendResponse(res, statusCode, message, errInfo);
 }
 
 export default errorHandler;
