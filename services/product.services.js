@@ -65,7 +65,8 @@ export const getProducts = async (filter = {}, operator = "and") => {
     })
     .join(`${operator}`);
 
-  const whereClause = Object.keys(filter).length == 0 ? " " : `where ${productQuery}`;
+  const whereClause =
+    Object.keys(filter).length == 0 ? " " : `where ${productQuery}`;
 
   const values = Object.values(filter);
   const queryString = `select * from public.products ${whereClause}`;
@@ -106,19 +107,10 @@ export const filterPagination = async (searchResult) => {
   const baseUrl = process.env.BASEURL;
   const searchQuery = `
     SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand",
-      (
-        SELECT json_agg(json_build_object('id', pr.id, 'categoryName', c."categoryName"))
-        FROM public.productcategoryrelation pr
-        LEFT JOIN public.categories c ON pr."categoryId" = c.id
-        WHERE pr."productId" = p.id 
-      ) AS categories,
-      (
-        SELECT json_agg(json_build_object('id', i.id, 'imageUrl', $${
-          searchParams.length + 1
-        } || i."imageUrl"))
-        FROM public.imageproducts i
-        WHERE i."productId" = p.id
-      ) AS images
+    jsonb_agg(DISTINCT jsonb_build_object('id',pr.id,'categoryName',c."categoryName")) as categories,
+    jsonb_agg(DISTINCT jsonb_build_object('id',i.id,'imageUrl', $${
+      searchParams.length + 1
+    } || i."imageUrl")) as imageUrl      
     FROM public.products p
     LEFT JOIN public.productcategoryrelation pr ON pr."productId" = p.id
     LEFT JOIN public.categories c ON pr."categoryId" = c.id
@@ -139,31 +131,21 @@ export const paginateFilteredResults = async (pagination, searchQuery) => {
   const baseUrl = process.env.BASEURL;
   const searchParams = searchQuery.params;
   const whereClause = searchQueryString ? `WHERE ${searchQueryString}` : " ";
-
   const finalQueryString = `
-    SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand",
-      (
-        SELECT json_agg(json_build_object('id', pr.id, 'categoryName', c."categoryName"))
-        FROM public.productcategoryrelation pr
-        LEFT JOIN public.categories c ON pr."categoryId" = c.id
-        WHERE pr."productId" = p.id 
-      ) AS categories,
-      (
-        SELECT json_agg(json_build_object('id', i.id, 'imageUrl', $${
-          searchParams.length + 1
-        } || i."imageUrl"))
-        FROM public.imageproducts i
-        WHERE i."productId" = p.id
-      ) AS images
-    FROM public.products p
-    LEFT JOIN public.productcategoryrelation pr ON pr."productId" = p.id
-    LEFT JOIN public.categories c ON pr."categoryId" = c.id
-    LEFT JOIN public.imageproducts i ON i."productId" = p.id
-    ${whereClause}
-    GROUP BY p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand"
-    ORDER BY $${searchParams.length + 2}, $${searchParams.length + 3}
-    LIMIT  $${searchParams.length + 4} OFFSET $${searchParams.length + 5}
-  `;
+  SELECT p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand",
+    jsonb_agg(DISTINCT jsonb_build_object('id', pr.id, 'categoryName', c."categoryName")) AS categories,
+    jsonb_agg(DISTINCT jsonb_build_object('id', i.id, 'imageUrl', $${
+      searchParams.length + 1
+    } || i."imageUrl")) AS images
+  FROM public.products p
+  LEFT JOIN public.productcategoryrelation pr ON pr."productId" = p.id
+  LEFT JOIN public.categories c ON pr."categoryId" = c.id
+  LEFT JOIN public.imageproducts i ON i."productId" = p.id
+  ${whereClause}
+  GROUP BY p.id, p."productName", p."description", p."productDetails", p."price", p."color", p."rating", p."reviews", p."brand"
+  ORDER BY $${searchParams.length + 2}, $${searchParams.length + 3}
+  LIMIT $${searchParams.length + 4} OFFSET $${searchParams.length + 5}
+`;
 
   const queryParams = [
     ...searchParams,
@@ -187,7 +169,6 @@ export const deleteProduct = async (filter, operator = "and") => {
     .join(`${operator}`);
   const values = Object.values(filter);
   const queryString = `delete from public.products where ${whereClause}`;
-  console.log(queryString);
   const { rows } = await pool.query(queryString, values);
   return rows;
 };

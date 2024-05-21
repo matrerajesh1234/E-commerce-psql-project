@@ -33,13 +33,12 @@ export const updateCategory = async (
     SET ${categoryWhereClause}
     WHERE "isDeleted" = false and ${filterWhereClause};
   `;
-  console.log(queryText);
 
   const queryValues = [...filterValues, ...categoryValues];
 
   const response = await pool.query(queryText, queryValues);
   return response;
-};``
+};
 
 export const getCategories = async (filter = {}, operator = "and") => {
   const categoryQuery = Object.entries(filter)
@@ -56,4 +55,3 @@ export const getCategories = async (filter = {}, operator = "and") => {
   const { rows } = await pool.query(queryString, values);
   return rows;
 };
-

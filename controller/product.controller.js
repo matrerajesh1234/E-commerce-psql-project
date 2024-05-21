@@ -61,6 +61,9 @@ export const listAllProduct = async (req, res, next) => {
       totalResultCount
     );
 
+    if (paginatedData.list.length == 0) {
+      throw new NotFoundError("Product Not Found");
+    }
     return sendResponse(res, 200, "Product list", paginatedData);
   } catch (error) {
     next(error);

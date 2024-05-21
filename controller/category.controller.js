@@ -45,7 +45,6 @@ export const editCategory = async (req, res, next) => {
       { id: req.params.id },
       "and"
     );
-    console.log(foundCategory);
 
     if (!foundCategory) {
       throw new NotFoundError("Category not found");
