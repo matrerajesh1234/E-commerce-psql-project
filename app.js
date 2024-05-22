@@ -3,9 +3,8 @@ const app = express();
 import { connectDatabase } from "./config/database.js";
 import indexRouter from "./router/index.js";
 import errorHandler from "./error/error.handler.js";
-import { configDotenv } from "dotenv";
 
-configDotenv();
+process.loadEnvFile(".env");
 connectDatabase();
 
 app.use(express.json());

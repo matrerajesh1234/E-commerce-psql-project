@@ -15,6 +15,7 @@ router.get(
   validationMiddleware({ params: categorySchemas.params }), // Param validation
   categoryController.editCategory
 );
+
 router.put(
   "/updatecategory/:id",
   validationMiddleware({
@@ -30,3 +31,4 @@ router.delete(
 );
 
 export default router;
+  

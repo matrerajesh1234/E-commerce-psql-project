@@ -22,6 +22,7 @@ router.get(
   validationMiddleware({ params: productSchemas.params }),
   productController.editProduct
 );
+
 router.put(
   "/updateproduct/:id",
   uploadMiddlware.array("imageUrl", 5),

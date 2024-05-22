@@ -1,4 +1,5 @@
 import pool from "../config/database.js";
+import { BadRequestError, NotFoundError } from "../error/custom.error.handler.js";
 
 //product service for create product
 export const createNewProduct = async (body) => {
@@ -18,6 +19,23 @@ export const createNewProduct = async (body) => {
   return rows;
 };
 
+export const getProductCategory = async (categoryIds) => {
+
+  const categoryArray = Array.isArray(categoryIds)?categoryIds:[categoryIds];
+ 
+  const placeholder = categoryArray.map((key,i)=>{
+    return `$${i+1}`
+  }).join(', ')
+
+  const queryString = `
+    SELECT *
+    FROM public.categories
+    WHERE "isDeleted" = false
+    AND id IN (${placeholder})
+  `;
+  const { rows } = await pool.query(queryString, categoryArray);
+  return rows;
+};
 export const uploadImage = async (files, productInfo) => {
   const whereClause = files
     .map((file, index) => {

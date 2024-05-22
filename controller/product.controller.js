@@ -2,7 +2,7 @@ import {
   BadRequestError,
   NotFoundError,
 } from "../error/custom.error.handler.js";
-import * as productServices from "../services/product.services.js";
+import { productServices } from "../services/index.js";
 import {
   paginationAndSorting,
   sendResponse,
@@ -26,15 +26,39 @@ export const createProduct = async (req, res, next) => {
       throw new BadRequestError("Product Not Found");
     }
 
-    const productImage = await productServices.uploadImage(
-      req.files,
-      newProduct[0].id
-    );
+    if (req.files && req.files.length > 0) {
+      const productImage = await productServices.uploadImage(
+        req.files,
+        newProduct[0].id
+      );
+    } else {
+      throw new BadRequestError("Image is required");
+    }
 
-    const productCategoryRelation = await productServices.productRelation(
-      req.body,
-      newProduct[0].id
-    );
+    if (req.body.categoryId) {
+      const checkCategory = Array.isArray(req.body.categoryId)
+        ? req.body.categoryId
+        : [req.body.categoryId];
+
+      const foundCategory = await productServices.getProductCategory(
+        req.body.categoryId
+      );
+
+      if (foundCategory.length !== checkCategory.length) {
+        throw new NotFoundError("Some category IDs are not found");
+      }
+
+      if (!foundCategory) {
+        throw new NotFoundError("Category not found");
+      }
+
+      const productCategoryRelation = await productServices.productRelation(
+        req.body,
+        newProduct[0].id
+      );
+    } else {
+      throw new BadRequestError("Category is required");
+    }
 
     return sendResponse(res, 200, "Product created successfully", newProduct);
   } catch (error) {
@@ -65,10 +89,12 @@ export const listAllProduct = async (req, res, next) => {
       totalResultCount
     );
 
-    if (paginatedData.list.length == 0) {
-      throw new NotFoundError("Product Not Found");
-    }
-    return sendResponse(res, 200, "Product list", paginatedData);
+    return sendResponse(
+      res,
+      200,
+      "Product listing successfully",
+      paginatedData
+    );
   } catch (error) {
     next(error);
   }
@@ -79,12 +105,11 @@ export const editProduct = async (req, res, next) => {
     const [editProduct] = await productServices.getProducts({
       id: req.params.id,
     });
-    console.log(editProduct);
     if (!editProduct) {
       throw new NotFoundError("Product not found.");
     }
 
-    return sendResponse(res, 200, "Product detail", editProduct);
+    return sendResponse(res, 200, "Found product detail", editProduct);
   } catch (error) {
     next(error);
   }
@@ -111,6 +136,22 @@ export const updateProduct = async (req, res, next) => {
     }
 
     if (req.body.categoryId) {
+      const checkCategory = Array.isArray(req.body.categoryId)
+        ? req.body.categoryId
+        : [req.body.categoryId];
+
+      const foundCategory = await productServices.getProductCategory(
+        req.body.categoryId
+      );
+
+      if (foundCategory.length !== checkCategory.length) {
+        throw new NotFoundError("Some category IDs are not found");
+      }
+
+      if (!foundCategory) {
+        throw new NotFoundError("Category not found");
+      }
+
       await productServices.updateProductRelation(req.body, req.params.id);
     } else {
       throw new BadRequestError("Category is required");

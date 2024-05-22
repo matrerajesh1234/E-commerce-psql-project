@@ -60,15 +60,21 @@ export const productSchemas = {
     }),
     brand: Joi.string().optional().allow(null),
     categoryId: Joi.alternatives().try(
-      Joi.string().required().messages({
+      Joi.string().pattern(new RegExp("^[0-9]+$")).required().messages({
+        "string.pattern.base": "Category Id must be in integer format",
         "string.empty": "Category Id cannot be empty",
         "any.required": "Category Id is required",
       }),
-      Joi.array().items(Joi.string().required()).min(1).required().messages({
-        "array.base": "Category Id should be an array",
-        "array.min": "At least one Category Id is required",
-        "any.required": "Category Id is required",
-      })
+      Joi.array()
+        .items(Joi.string().pattern(new RegExp("^[0-9]+$")).required())
+        .min(1)
+        .required()
+        .messages({
+          "array.base": "Category Id should be an array",
+          "array.min": "At least one Category Id is required",
+          "any.required": "Category Id is required",
+          "string.pattern.base": "Category Id must be in integer format",
+        })
     ),
   }),
   params: Joi.object({
