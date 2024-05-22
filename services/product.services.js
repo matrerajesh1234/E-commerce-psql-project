@@ -1,5 +1,6 @@
 import pool from "../config/database.js";
 
+//product service for create product
 export const createNewProduct = async (body) => {
   const { rows } = await pool.query(
     `INSERT INTO public.products("productName", "productDetails", "description", "price", "color", "rating", "reviews", "brand") VALUES($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
@@ -58,6 +59,7 @@ export const productRelation = async (body, productInfo) => {
   return rows;
 };
 
+//get product services
 export const getProducts = async (filter = {}, operator = "and") => {
   const productQuery = Object.entries(filter)
     .map(([key, value], i) => {
@@ -74,33 +76,81 @@ export const getProducts = async (filter = {}, operator = "and") => {
   return rows;
 };
 
-export const updateProduct = async (filter, productData, operator = "and") => {
-  const filterValues = Object.values(filter);
-  const filterWhereClause = Object.entries(filter)
-    .map(([key, value], i) => {
-      return `"${key}" = $${i + 1}`;
-    })
-    .join(`${operator}`);
-
-  const productDataValues = Object.values(productData);
-  const productWhereClause = Object.entries(productData)
-    .map(([key, value], i) => {
-      return `"${key}" = $${filterValues.length + i + 1}`;
-    })
-    .join(`${operator}`);
-
-  const queryText = `
+//product services for update product
+export const updateProduct = async (filter, product) => {
+  const filterKey = Object.keys(filter)[0];
+  const filterValue = filter[filterKey];
+  // Define the update query
+  const productQuery = `
     UPDATE public.products
-    SET ${productWhereClause}
-    WHERE ${filterWhereClause};
+    SET
+      "productName" = $2,
+      "productDetails" = $3,
+      description = $4,
+      price = $5,
+      color = $6,
+      rating = $7,
+      reviews = $8,
+      brand = $9
+    WHERE
+      "${filterKey}" = $1;
   `;
 
-  const queryValues = [...filterValues, ...productDataValues];
+  // Values to update and the filter value
+  const values = [
+    filterValue,
+    product.productName,
+    product.productDetails,
+    product.description,
+    product.price,
+    product.color,
+    product.rating,
+    product.reviews,
+    product.brand,
+  ];
 
-  const response = await pool.query(queryText, queryValues);
-  return response;
+  const { rows } = await pool.query(productQuery, values);
+  return rows;
 };
 
+export const updateImage = async (files, productId) => {
+  await pool.query(`DELETE FROM imageProducts WHERE "productId" = $1`, [
+    productId,
+  ]);
+  const whereClause = files
+    .map((file, index) => `($${index * 2 + 1},$${index * 2 + 2})`)
+    .join(", ");
+  const imageParams = files.map((file) => [productId, file.path]).flat();
+  const imageQueryString = `INSERT INTO imageProducts("productId", "imageUrl") VALUES ${whereClause}`;
+
+  const { rows } = await pool.query(imageQueryString, imageParams);
+  return rows;
+};
+
+export const updateProductRelation = async (body, productId) => {
+  const categoryId = Array.isArray(body.categoryId)
+    ? body.categoryId
+    : [body.categoryId];
+
+  await pool.query(
+    `DELETE FROM productCategoryRelation WHERE "productId" = $1`,
+    [productId]
+  );
+
+  // Insert new category relations
+  const whereClause = categoryId
+    .map((_, index) => `($${index * 2 + 1},$${index * 2 + 2})`)
+    .join(", ");
+  const categoryParams = categoryId
+    .map((categoryId) => [productId, categoryId])
+    .flat();
+  const productCategoryString = `INSERT INTO productCategoryRelation("productId", "categoryId") VALUES ${whereClause}`;
+
+  const { rows } = await pool.query(productCategoryString, categoryParams);
+  return rows;
+};
+
+//product listing
 export const filterPagination = async (searchResult) => {
   const searchParams = searchResult.params;
   const whereClause = searchResult.query ? `WHERE ${searchResult.query}` : " ";
@@ -161,6 +211,7 @@ export const paginateFilteredResults = async (pagination, searchQuery) => {
   return productResult;
 };
 
+//product delete service
 export const deleteProduct = async (filter, operator = "and") => {
   const whereClause = Object.entries(filter)
     .map(([key, value], i) => {

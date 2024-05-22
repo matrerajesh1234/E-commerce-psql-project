@@ -1,17 +1,50 @@
 import { sendResponse } from "../utils/services.js";
-
-export const validationMiddleware = (schema, property) => {
+export const validationMiddleware = (schemas) => {
   return (req, res, next) => {
-    if (!schema) {
-      next();
-      return;
+    const errors = [];
+
+    // Validate body
+    if (schemas.body) {
+      const { error } = schemas.body.validate(req.body, { abortEarly: false });
+      if (error) {
+        errors.push(...error.details.map((err) => err.message));
+      }
     }
-    const { error } = schema.validate(req[property]);
-    if (!error) {
+
+    // Validate params
+    if (schemas.params) {
+      const { error } = schemas.params.validate(req.params, {
+        abortEarly: false,
+      });
+      if (error) {
+        errors.push(...error.details.map((err) => err.message));
+      }
+    }
+
+    // Validate query
+    if (schemas.query) {
+      const { error } = schemas.query.validate(req.query, {
+        abortEarly: false,
+      });
+      if (error) {
+        errors.push(...error.details.map((err) => err.message));
+      }
+    }
+
+    // Validate files
+    if (schemas.files) {
+      const { error } = schemas.files.validate(req.files, {
+        abortEarly: false,
+      });
+      if (error) {
+        errors.push(...error.details.map((err) => err.message));
+      }
+    }
+
+    if (errors.length === 0) {
       next();
     } else {
-      const errorMessages = error.details.map((err) => err.message);
-      return sendResponse(res, 400, errorMessages[0]);
+      return sendResponse(res, 400, errors);
     }
   };
 };

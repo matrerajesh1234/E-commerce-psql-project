@@ -59,19 +59,24 @@ export const productSchemas = {
       "string.base": "Review should be a string",
     }),
     brand: Joi.string().optional().allow(null),
-    categoryId: Joi.array().items(Joi.string().required()).required().messages({
-      "array.base": "Category Id should be an array",
-      "any.required": "Category Id is required",
-    }),
+    categoryId: Joi.alternatives().try(
+      Joi.string().required().messages({
+        "string.empty": "Category Id cannot be empty",
+        "any.required": "Category Id is required",
+      }),
+      Joi.array().items(Joi.string().required()).min(1).required().messages({
+        "array.base": "Category Id should be an array",
+        "array.min": "At least one Category Id is required",
+        "any.required": "Category Id is required",
+      })
+    ),
   }),
-
   params: Joi.object({
     id: Joi.string().required().messages({
-      "string.empty": "Product name cannot be empty", // ask for this message senior
-      "any.required": "Product name is required",
+      "string.empty": "Product ID cannot be empty",
+      "any.required": "Product ID is required",
     }),
   }),
-
   query: Joi.object({
     search: Joi.string().optional().allow("").max(255).messages({
       "string.max": "Search query length should not exceed 255 characters",
@@ -91,13 +96,16 @@ export const productSchemas = {
       "any.only": "SortOrder must be either 'asc' or 'desc'",
     }),
   }),
-
   filesSchema: Joi.array().items(
     Joi.object({
       fieldname: Joi.string().required(),
       originalname: Joi.string().required(),
       encoding: Joi.string().required(),
       mimetype: Joi.string().required(),
+      destination: Joi.string().required(),
+      filename: Joi.string().required(),
+      path: Joi.string().required(),
+      size: Joi.number().required(),
     })
   ),
 };

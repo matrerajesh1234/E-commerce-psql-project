@@ -8,30 +8,32 @@ import { productSchemas } from "../validation/index.js";
 router.post(
   "/createproduct",
   uploadMiddlware.array("imageUrl", 5),
-  validationMiddleware(productSchemas.body.validProduct, "body"),
-  validationMiddleware(productSchemas.filesSchema),
+  validationMiddleware({ body: productSchemas.body }),
   productController.createProduct
 );
 
 router.get(
   "/listproducts",
-  validationMiddleware(productSchemas.query.validListRequest, "query"),
+  validationMiddleware({ query: productSchemas.query }),
   productController.listAllProduct
 );
 router.get(
   "/editproduct/:id",
-  validationMiddleware(productSchemas.params.validProductId, "params"),
+  validationMiddleware({ params: productSchemas.params }),
   productController.editProduct
 );
 router.put(
   "/updateproduct/:id",
-  validationMiddleware(productSchemas.body.validProduct, "body"),
-  validationMiddleware(productSchemas.params.validProductId, "params"),
+  uploadMiddlware.array("imageUrl", 5),
+  validationMiddleware({
+    body: productSchemas.body,
+    params: productSchemas.params,
+  }),
   productController.updateProduct
 );
 router.delete(
   "/deleteproduct/:id",
-  validationMiddleware(productSchemas.params.validProductId, "params"),
+  validationMiddleware({ params: productSchemas.params }),
   productController.deleteProduct
 );
 

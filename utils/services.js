@@ -1,21 +1,15 @@
 export const sendResponse = (res, statusCode, message, data) => {
-  if (!statusCode >= 300) {
-    res.status(statusCode).json({
-      success: false,
-      message: message,
-    });
-  }
-  if (!data) {
-    res.status(statusCode).json({
-      success: true,
-      message: message,
-    });
-  }
-  return res.status(statusCode).json({
+  let responseData = {
     success: true,
     message: message,
-    data,
-  });
+    data: data,
+  };
+
+  if (statusCode >= 300 || !data) {
+    responseData.success = false;
+    delete responseData.data;
+  }
+  return res.status(statusCode).json(responseData);
 };
 export const paginatedResponse = (data, pageCount, limitCount, totalCount) => {
   const totalPage = limitCount === 0 ? 0 : Math.ceil(totalCount / limitCount);
@@ -32,7 +26,6 @@ export const search = (search, fields) => {
     const query = fields
       .map((field, index) => `"${field}" ILIKE '%' || $${1} || '%'`)
       .join(" OR ");
-
     return { query: query, params: [search] };
   }
   return {

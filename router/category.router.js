@@ -3,27 +3,29 @@ const router = express.Router();
 import { categoryController } from "../controller/index.js";
 import { validationMiddleware } from "../middleware/validation.middleware.js";
 import { categorySchemas } from "../validation//index.js";
-
 router.post(
   "/insertcategory",
-  validationMiddleware(categorySchemas.body.validCategoryName, "body"),
+  validationMiddleware({ body: categorySchemas.body }),
   categoryController.createCategory
 );
+
 router.get("/listcategory", categoryController.getAllCategories);
 router.get(
   "/editcategory/:id",
-  validationMiddleware(categorySchemas.params.validCategoryId),
+  validationMiddleware({ params: categorySchemas.params }), // Param validation
   categoryController.editCategory
 );
 router.put(
   "/updatecategory/:id",
-  validationMiddleware(categorySchemas.params.validCategoryId, "params"),
-  validationMiddleware(categorySchemas.body.validCategoryName, "body"),
+  validationMiddleware({
+    body: categorySchemas.body,
+    params: categorySchemas.params,
+  }),
   categoryController.updateCategory
 );
 router.delete(
   "/deletecategory/:id",
-  validationMiddleware(categorySchemas.params.validCategoryId),
+  validationMiddleware({ params: categorySchemas.params }), // Params validation
   categoryController.deleteCategory
 );
 

@@ -22,6 +22,10 @@ export const createProduct = async (req, res, next) => {
 
     const newProduct = await productServices.createNewProduct(req.body);
 
+    if (!newProduct) {
+      throw new BadRequestError("Product Not Found");
+    }
+
     const productImage = await productServices.uploadImage(
       req.files,
       newProduct[0].id
@@ -72,14 +76,15 @@ export const listAllProduct = async (req, res, next) => {
 
 export const editProduct = async (req, res, next) => {
   try {
-    const [singleProduct] = await productServices.getProducts({
+    const [editProduct] = await productServices.getProducts({
       id: req.params.id,
     });
-    if (!singleProduct) {
+    console.log(editProduct);
+    if (!editProduct) {
       throw new NotFoundError("Product not found.");
     }
 
-    return sendResponse(res, 200, "Product detail", singleProduct);
+    return sendResponse(res, 200, "Product detail", editProduct);
   } catch (error) {
     next(error);
   }
@@ -87,20 +92,29 @@ export const editProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
-    const [checkProduct] = await productServices.getProducts(
-      { id: req.params.id },
-      "and"
-    );
+    const [checkProduct] = await productServices.getProducts({
+      id: req.params.id,
+    });
     if (!checkProduct) {
       throw new NotFoundError("Product not found.");
     }
 
     const updatedProduct = await productServices.updateProduct(
       { id: req.params.id },
-      req.body,
-      "and"
+      req.body
     );
 
+    if (req.files && req.files.length > 0) {
+      await productServices.updateImage(req.files, req.params.id);
+    } else {
+      throw new BadRequestError("Image is required");
+    }
+
+    if (req.body.categoryId) {
+      await productServices.updateProductRelation(req.body, req.params.id);
+    } else {
+      throw new BadRequestError("Category is required");
+    }
     return sendResponse(res, 200, "Product updated successfully");
   } catch (error) {
     next(error);
