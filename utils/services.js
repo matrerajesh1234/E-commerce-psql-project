@@ -5,7 +5,7 @@ export const sendResponse = (res, statusCode, message, data) => {
     data: data,
   };
 
-  if (statusCode >= 300 || !data) {
+  if (statusCode >= 300 && !data) {
     responseData.success = false;
     delete responseData.data;
   }
