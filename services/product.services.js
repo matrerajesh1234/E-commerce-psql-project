@@ -1,5 +1,8 @@
 import pool from "../config/database.js";
-import { BadRequestError, NotFoundError } from "../error/custom.error.handler.js";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "../error/custom.error.handler.js";
 
 //product service for create product
 export const createNewProduct = async (body) => {
@@ -20,12 +23,15 @@ export const createNewProduct = async (body) => {
 };
 
 export const getProductCategory = async (categoryIds) => {
+  const categoryArray = Array.isArray(categoryIds)
+    ? categoryIds
+    : [categoryIds];
 
-  const categoryArray = Array.isArray(categoryIds)?categoryIds:[categoryIds];
- 
-  const placeholder = categoryArray.map((key,i)=>{
-    return `$${i+1}`
-  }).join(', ')
+  const placeholder = categoryArray
+    .map((key, i) => {
+      return `$${i + 1}`;
+    })
+    .join(", ");
 
   const queryString = `
     SELECT *
@@ -36,6 +42,7 @@ export const getProductCategory = async (categoryIds) => {
   const { rows } = await pool.query(queryString, categoryArray);
   return rows;
 };
+
 export const uploadImage = async (files, productInfo) => {
   const whereClause = files
     .map((file, index) => {
@@ -239,5 +246,12 @@ export const deleteProduct = async (filter, operator = "and") => {
   const values = Object.values(filter);
   const queryString = `delete from public.products where ${whereClause}`;
   const { rows } = await pool.query(queryString, values);
+  return rows;
+};
+
+export const productImages = async (productId) => {
+  const query = `select "imageUrl" from imageproducts where "productId" = $1`;
+  const params = [productId];
+  const { rows } = await pool.query(query, params);
   return rows;
 };

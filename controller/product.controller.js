@@ -2,16 +2,23 @@ import {
   BadRequestError,
   NotFoundError,
 } from "../error/custom.error.handler.js";
+import uploadMiddlware from "../middleware/multer.js";
 import { productServices } from "../services/index.js";
 import {
   paginationAndSorting,
   sendResponse,
   paginatedResponse,
   search,
+  beginTransition,
+  commitTransition,
+  rollBackTransition,
 } from "../utils/services.js";
+import fs from "fs";
 
 export const createProduct = async (req, res, next) => {
   try {
+    await beginTransition();
+
     const [existingProduct] = await productServices.getProducts({
       productName: req.body.productName,
     });
@@ -25,6 +32,9 @@ export const createProduct = async (req, res, next) => {
     if (!newProduct) {
       throw new BadRequestError("Product Not Found");
     }
+
+    const data = uploadMiddlware.array("imageUrl", 5);
+    console.log(data);
 
     if (req.files && req.files.length > 0) {
       const productImage = await productServices.uploadImage(
@@ -60,8 +70,12 @@ export const createProduct = async (req, res, next) => {
       throw new BadRequestError("Category is required");
     }
 
-    return sendResponse(res, 200, "Product created successfully", newProduct);
+    await commitTransition();
+
+     sendResponse(res, 200, "Product created successfully", newProduct);
+     next()
   } catch (error) {
+    await rollBackTransition();
     next(error);
   }
 };
@@ -117,6 +131,7 @@ export const editProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   try {
+    await beginTransition();
     const [checkProduct] = await productServices.getProducts({
       id: req.params.id,
     });
@@ -128,6 +143,19 @@ export const updateProduct = async (req, res, next) => {
       { id: req.params.id },
       req.body
     );
+
+    const deletedImages = await productServices.productImages(
+      checkProduct.id
+    );
+
+    for (let image of deletedImages) {
+      const imagePath = image.imageUrl;
+      try {
+        fs.unlinkSync(imagePath);
+      } catch (error) {
+        throw new BadRequestError("Error deleting file");
+      }
+    }
 
     if (req.files && req.files.length > 0) {
       await productServices.updateImage(req.files, req.params.id);
@@ -145,7 +173,7 @@ export const updateProduct = async (req, res, next) => {
       );
 
       if (foundCategory.length !== checkCategory.length) {
-        throw new NotFoundError("Some category IDs are not found");
+        throw new NotFoundError("Category not found");
       }
 
       if (!foundCategory) {
@@ -156,8 +184,12 @@ export const updateProduct = async (req, res, next) => {
     } else {
       throw new BadRequestError("Category is required");
     }
+
+    await commitTransition();
+
     return sendResponse(res, 200, "Product updated successfully");
   } catch (error) {
+    await rollBackTransition();
     next(error);
   }
 };
@@ -170,6 +202,19 @@ export const deleteProduct = async (req, res, next) => {
     );
     if (!checkProduct) {
       throw new NotFoundError("Product not found.");
+    }
+
+    const deletedImages = await productServices.productImages(
+      checkProduct.id
+    );
+
+    for (let image of deletedImages) {
+      const imagePath = image.imageUrl;
+      try {
+        fs.unlinkSync(imagePath);
+      } catch (error) {
+        throw new BadRequestError("Error deleting file");
+      }
     }
 
     const deletedProduct = await productServices.deleteProduct(

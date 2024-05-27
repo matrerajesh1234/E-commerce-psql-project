@@ -9,7 +9,7 @@ router.post(
   "/createproduct",
   uploadMiddlware.array("imageUrl", 5),
   validationMiddleware({ body: productSchemas.body }),
-  productController.createProduct
+  productController.createProduct,
 );
 
 router.get(

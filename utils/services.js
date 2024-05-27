@@ -1,3 +1,5 @@
+import pool from "../config/database.js";
+
 export const sendResponse = (res, statusCode, message, data) => {
   let responseData = {
     success: true,
@@ -42,4 +44,17 @@ export const paginationAndSorting = (query, defaultSorting = "id") => {
   const skip = (pageCount - 1) * limitCount;
 
   return { pageCount, limitCount, skip, sortField, sortOrderValue };
+};
+
+// transitions utils
+export const beginTransition = async () => {
+  return await pool.query("BEGIN");
+};
+
+export const commitTransition = async () => {
+  return await pool.query("COMMIT");
+};
+
+export const rollBackTransition = async () => {
+  return await pool.query("ROLLBACK");
 };
