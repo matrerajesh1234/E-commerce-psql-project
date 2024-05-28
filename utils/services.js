@@ -1,4 +1,8 @@
 import pool from "../config/database.js";
+import { v4 as uuidv4 } from "uuid";
+import fs from "fs";
+import { BadRequestError } from "../error/custom.error.handler.js";
+import path from "path";
 
 export const sendResponse = (res, statusCode, message, data) => {
   let responseData = {
@@ -57,4 +61,30 @@ export const commitTransition = async () => {
 
 export const rollBackTransition = async () => {
   return await pool.query("ROLLBACK");
+};
+
+export const uploadImages = (files, productId) => {
+  const folderPath = `./uploads/${productId}`;
+  if (!fs.existsSync(folderPath)) {
+    fs.mkdirSync(folderPath);
+  }
+
+  const uploadFile = Array.isArray(files.imageUrl)
+    ? files.imageUrl
+    : [files.imageUrl];
+
+  const filePaths = uploadFile.map((file) => {
+    const sanitizedFileName = file.name.replace(/\s+/g, "_");
+    const uniqueName = `${uuidv4()}-${sanitizedFileName}`;
+    const uploadPath = path.join("uploads", `${productId}`, `${uniqueName}`);
+    file.mv(uploadPath, function (err) {
+      if (err) {
+        throw new BadRequestError("Error moving file", err);
+      }
+    });
+
+    return uploadPath;
+  });
+
+  return filePaths;
 };

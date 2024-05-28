@@ -43,20 +43,13 @@ export const getProductCategory = async (categoryIds) => {
   return rows;
 };
 
-export const uploadImage = async (files, productInfo) => {
-  const whereClause = files
-    .map((file, index) => {
-      return `($${index * 2 + 1},$${index * 2 + 2})`;
-    })
+export const uploadImage = async (filePaths, productId) => {
+  const whereClause = filePaths
+    .map((file, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
     .join(", ");
+  const imageParams = filePaths.map((filePath) => [productId, filePath]).flat();
+  const imageQueryString = `INSERT INTO imageProducts("productId", "imageUrl") VALUES ${whereClause}`;
 
-  const imageParams = files
-    .map((file) => {
-      return [productInfo, file.path];
-    })
-    .flat();
-
-  const imageQueryString = `INSERT INTO imageProducts("productId","imageUrl") VALUES ${whereClause}`;
   const { rows } = await pool.query(imageQueryString, imageParams);
   return rows;
 };
@@ -120,7 +113,6 @@ export const updateProduct = async (filter, product) => {
     WHERE
       "${filterKey}" = $1;
   `;
-
   // Values to update and the filter value
   const values = [
     filterValue,
@@ -133,19 +125,18 @@ export const updateProduct = async (filter, product) => {
     product.reviews,
     product.brand,
   ];
-
   const { rows } = await pool.query(productQuery, values);
   return rows;
 };
 
-export const updateImage = async (files, productId) => {
+export const updateImage = async (filePaths, productId) => {
   await pool.query(`DELETE FROM imageProducts WHERE "productId" = $1`, [
     productId,
   ]);
-  const whereClause = files
-    .map((file, index) => `($${index * 2 + 1},$${index * 2 + 2})`)
+  const whereClause = filePaths
+    .map((file, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
     .join(", ");
-  const imageParams = files.map((file) => [productId, file.path]).flat();
+  const imageParams = filePaths.map((filePath) => [productId, filePath]).flat();
   const imageQueryString = `INSERT INTO imageProducts("productId", "imageUrl") VALUES ${whereClause}`;
 
   const { rows } = await pool.query(imageQueryString, imageParams);

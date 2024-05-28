@@ -1,15 +1,17 @@
 import express from "express";
 const router = express();
 import { productController } from "../controller/index.js";
-import uploadMiddlware from "../middleware/multer.js";
+// import uploadMiddlware from "../middleware/multer.js";
 import { validationMiddleware } from "../middleware/validation.middleware.js";
 import { productSchemas } from "../validation/index.js";
 
 router.post(
   "/createproduct",
-  uploadMiddlware.array("imageUrl", 5),
-  validationMiddleware({ body: productSchemas.body }),
-  productController.createProduct,
+  validationMiddleware({
+    body: productSchemas.body,
+    files: productSchemas.filesSchema,
+  }),
+  productController.createProduct
 );
 
 router.get(
@@ -25,7 +27,7 @@ router.get(
 
 router.put(
   "/updateproduct/:id",
-  uploadMiddlware.array("imageUrl", 5),
+  // uploadMiddlware.array("imageUrl", 5),
   validationMiddleware({
     body: productSchemas.body,
     params: productSchemas.params,
