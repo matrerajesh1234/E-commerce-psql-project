@@ -76,58 +76,7 @@ export const productSchemas = {
           "string.pattern.base": "Category Id must be in integer format",
         })
     ),
-    filesSchema: Joi.object({
-      imageUrl: Joi.alternatives().conditional("imageUrl", {
-        is: Joi.exist(), // If imageUrl is present
-        then: Joi.alternatives()
-          .try(
-            Joi.object({
-              name: Joi.string().required(),
-              data: Joi.binary().required(),
-              size: Joi.number().required(),
-              encoding: Joi.string().required(),
-              tempFilePath: Joi.string().allow(""),
-              truncated: Joi.boolean().required(),
-              mimetype: Joi.string()
-                .valid("image/jpeg", "image/png", "image/gif")
-                .required(),
-              md5: Joi.string().required(),
-              mv: Joi.function().required(),
-            }),
-            Joi.array()
-              .items(
-                Joi.object({
-                  name: Joi.string().required(),
-                  data: Joi.binary().required(),
-                  size: Joi.number().required(),
-                  encoding: Joi.string().required(),
-                  tempFilePath: Joi.string().allow(""),
-                  truncated: Joi.boolean().required(),
-                  mimetype: Joi.string()
-                    .valid("image/jpeg", "image/png", "image/gif")
-                    .required(),
-                  md5: Joi.string().required(),
-                  mv: Joi.function().required(),
-                })
-              )
-              .min(1) // Ensure at least one image is present in the array
-          )
-          .required()
-          .messages({
-            "any.required": "Image is required",
-            "array.min": "At least one image is required",
-            "string.valid":
-              "Invalid image type, only jpeg, png, or gif are allowed",
-          }),
-        otherwise: Joi.string().required().messages({
-          "any.required": "Image is required",
-          "string.empty": "Image cannot be empty",
-        }),
-      }),
-    }).messages({
-      "array.min": "At least one image is required",
-      "string.valid": "Invalid image type, only jpeg, png, or gif are allowed",
-    }),
+    imageUrl: Joi.any().optional(),
   }),
   params: Joi.object({
     id: Joi.string().required().messages({
@@ -155,43 +104,44 @@ export const productSchemas = {
     }),
   }),
   filesSchema: Joi.object({
-    imageUrl: Joi.alternatives().try(
-      Joi.object({
-        name: Joi.string().required(),
-        data: Joi.binary().required(),
-        size: Joi.number().required(),
-        encoding: Joi.string().required(),
-        tempFilePath: Joi.string().allow(""),
-        truncated: Joi.boolean().required(),
-        mimetype: Joi.string()
-          .valid("image/jpeg", "image/png", "image/gif")
-          .required(),
-        md5: Joi.string().required(),
-        mv: Joi.function().required(),
+    imageUrl: Joi.alternatives()
+      .try(
+        Joi.object({
+          name: Joi.string().required(),
+          data: Joi.binary().required(),
+          size: Joi.number().required(),
+          encoding: Joi.string().required(),
+          tempFilePath: Joi.string().allow(""),
+          truncated: Joi.boolean().required(),
+          mimetype: Joi.string()
+            .valid("image/jpeg", "image/png", "image/gif")
+            .required(),
+          md5: Joi.string().required(),
+          mv: Joi.function().required(),
+        }),
+        Joi.array()
+          .items(
+            Joi.object({
+              name: Joi.string().required(),
+              data: Joi.binary().required(),
+              size: Joi.number().required(),
+              encoding: Joi.string().required(),
+              tempFilePath: Joi.string().allow(""),
+              truncated: Joi.boolean().required(),
+              mimetype: Joi.string()
+                .valid("image/jpeg", "image/png", "image/gif")
+                .required(),
+              md5: Joi.string().required(),
+              mv: Joi.function().required(),
+            })
+          )
+          .min(1)
+          .required(), // Ensure at least one image if uploading multiple
+        Joi.allow(null, "") // Allow null for no image upload
+      )
+      .messages({
+        "any.required": "Image is required",
+        "array.min": "At least one image is required",
       }),
-      Joi.array()
-        .items(
-          Joi.object({
-            name: Joi.string().required(),
-            data: Joi.binary().required(),
-            size: Joi.number().required(),
-            encoding: Joi.string().required(),
-            tempFilePath: Joi.string().allow(""),
-            truncated: Joi.boolean().required(),
-            mimetype: Joi.string()
-              .valid("image/jpeg", "image/png", "image/gif")
-              .required(),
-            md5: Joi.string().required(),
-            mv: Joi.function().required(),
-          })
-        )
-        .min(1) // Ensure at least one image is present in array
-    ),
-  }).messages({
-    "any.required": "Image is required",
-    "array.min": "At least one image is required",
-    "object.base": "Invalid image data",
-    "string.base": "Invalid image data",
-    "string.valid": "Invalid image type, only jpeg, png, or gif are allowed",
   }),
 };

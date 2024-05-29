@@ -2,7 +2,6 @@ import {
   BadRequestError,
   NotFoundError,
 } from "../error/custom.error.handler.js";
-// import uploadMiddlware from "../middleware/multer.js";
 
 import { productServices } from "../services/index.js";
 import {
@@ -27,6 +26,10 @@ export const createProduct = async (req, res, next) => {
 
     if (existingProduct) {
       throw new BadRequestError("Product already exists.");
+    }
+
+    if (!req.files || !req.files.imageUrl) {
+      throw new BadRequestError("Image is required");
     }
 
     const newProduct = await productServices.createNewProduct(req.body);
@@ -139,6 +142,10 @@ export const updateProduct = async (req, res, next) => {
       throw new NotFoundError("Product not found.");
     }
 
+    if (!req.files || !req.files.imageUrl) {
+      throw new BadRequestError("Image is required");
+    }
+
     const deletedImages = await productServices.productImages(checkProduct.id);
     for (let image of deletedImages) {
       const imagePath = image.imageUrl;
@@ -153,7 +160,7 @@ export const updateProduct = async (req, res, next) => {
       { id: req.params.id },
       req.body
     );
-    
+
     if (req.files && req.files.imageUrl) {
       const uploadFilePaths = uploadImages(req.files, req.params.id);
       await productServices.updateImage(uploadFilePaths, req.params.id);

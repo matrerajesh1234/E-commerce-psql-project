@@ -9,7 +9,7 @@ router.post(
   "/createproduct",
   validationMiddleware({
     body: productSchemas.body,
-    files: productSchemas.filesSchema,
+    // files: productSchemas.filesSchema,
   }),
   productController.createProduct
 );
