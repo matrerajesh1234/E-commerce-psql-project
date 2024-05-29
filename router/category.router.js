@@ -1,33 +1,26 @@
 import express from "express";
 const router = express.Router();
 import { categoryController } from "../controller/index.js";
-import { validationMiddleware } from "../middleware/validation.middleware.js";
-import { categorySchemas } from "../validation//index.js";
+import * as validation from "../validation/categorySchemas.js";
+import { validateRequest } from "../middleware/validationMiddleware.js";
+
 router.post(
   "/insertcategory",
-  validationMiddleware({ body: categorySchemas.body }),
+  validation.validateCategory,
+  validateRequest(),
   categoryController.createCategory
 );
 
 router.get("/listcategory", categoryController.getAllCategories);
-router.get(
-  "/editcategory/:id",  
-  validationMiddleware({ params: categorySchemas.params }), // Param validation
-  categoryController.editCategory
-);
+router.get("/editcategory/:id", categoryController.editCategory);
 
 router.put(
   "/updatecategory/:id",
-  validationMiddleware({
-    body: categorySchemas.body,
-    params: categorySchemas.params,
-  }),
+  validation.validateUpdateCategory,
+  validateRequest(),
   categoryController.updateCategory
 );
-router.delete(
-  "/deletecategory/:id",
-  validationMiddleware({ params: categorySchemas.params }), // Params validation
-  categoryController.deleteCategory
-);
+
+router.delete("/deletecategory/:id", categoryController.deleteCategory);
 
 export default router;

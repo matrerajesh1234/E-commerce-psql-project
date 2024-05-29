@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import { BadRequestError } from "../error/custom.error.handler.js";
 import path from "path";
+import { response } from "express";
 
 export const sendResponse = (res, statusCode, message, data) => {
   let responseData = {
@@ -11,10 +12,16 @@ export const sendResponse = (res, statusCode, message, data) => {
     data: data,
   };
 
+  if(statusCode >= 400 && data){
+    responseData.success = false;
+    delete responseData.data
+  }
+  
   if (statusCode >= 300 && !data) {
     responseData.success = false;
     delete responseData.data;
   }
+  console.log(responseData)
   return res.status(statusCode).json(responseData);
 };
 export const paginatedResponse = (data, pageCount, limitCount, totalCount) => {

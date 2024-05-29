@@ -1,42 +1,21 @@
 import express from "express";
 const router = express();
 import { productController } from "../controller/index.js";
-import { validationMiddleware } from "../middleware/validation.middleware.js";
-import { productSchemas } from "../validation/index.js";
+
+import * as validation from "../validation/productSchemas.js";
+import { validateRequest } from "../middleware/validationMiddleware.js";
 
 router.post(
   "/createproduct",
-  validationMiddleware({
-    body: productSchemas.body,
-    // files: productSchemas.filesSchema
-  }),
+  validation.validateCategoryCreation,
+  validateRequest(),
   productController.createProduct
 );
 
-router.get(
-  "/listproducts",
-  validationMiddleware({ query: productSchemas.query }),
-  productController.listAllProduct
-);
-router.get(
-  "/editproduct/:id",
-  validationMiddleware({ params: productSchemas.params }),
-  productController.editProduct
-);
+router.get("/listproducts", productController.listAllProduct);
+router.get("/editproduct/:id", productController.editProduct);
 
-router.put(
-  "/updateproduct/:id",
-  validationMiddleware({
-    body: productSchemas.body,
-    params: productSchemas.params,
-    //  files: productSchemas.filesSchema,
-  }),
-  productController.updateProduct
-);
-router.delete(
-  "/deleteproduct/:id",
-  validationMiddleware({ params: productSchemas.params }),
-  productController.deleteProduct
-);
+router.put("/updateproduct/:id", productController.updateProduct);
+router.delete("/deleteproduct/:id", productController.deleteProduct);
 
 export default router;
