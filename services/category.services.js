@@ -46,7 +46,7 @@ export const getCategories = async (filter = {}, operator = "and") => {
       return `"${key}" = $${i + 1}`;
     })
     .join(`${operator}`);
-
+    
   const whereClause =
     Object.keys(filter).length == 0 ? " " : `and ${categoryQuery}`;
 

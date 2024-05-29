@@ -1,7 +1,6 @@
 import express from "express";
 const router = express();
 import { productController } from "../controller/index.js";
-// import uploadMiddlware from "../middleware/multer.js";
 import { validationMiddleware } from "../middleware/validation.middleware.js";
 import { productSchemas } from "../validation/index.js";
 
@@ -9,7 +8,7 @@ router.post(
   "/createproduct",
   validationMiddleware({
     body: productSchemas.body,
-    // files: productSchemas.filesSchema,
+    // files: productSchemas.filesSchema
   }),
   productController.createProduct
 );
@@ -27,10 +26,10 @@ router.get(
 
 router.put(
   "/updateproduct/:id",
-  // uploadMiddlware.array("imageUrl", 5),
   validationMiddleware({
     body: productSchemas.body,
     params: productSchemas.params,
+    //  files: productSchemas.filesSchema,
   }),
   productController.updateProduct
 );

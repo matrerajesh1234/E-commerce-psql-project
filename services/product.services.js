@@ -130,7 +130,7 @@ export const updateProduct = async (filter, product) => {
 };
 
 export const updateImage = async (filePaths, productId) => {
-  await pool.query(`DELETE FROM imageProducts WHERE "productId" = $1`, [
+ const data  =  await pool.query(`DELETE FROM imageProducts WHERE "productId" = $1`, [
     productId,
   ]);
   const whereClause = filePaths
@@ -241,7 +241,7 @@ export const deleteProduct = async (filter, operator = "and") => {
 };
 
 export const productImages = async (productId) => {
-  const query = `select "imageUrl" from imageproducts where "productId" = $1`;
+  const query = `select "productId", "imageUrl" from imageproducts where "productId" = $1`;
   const params = [productId];
   const { rows } = await pool.query(query, params);
   return rows;

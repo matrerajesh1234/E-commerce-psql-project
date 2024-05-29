@@ -115,7 +115,11 @@ export const productSchemas = {
           truncated: Joi.boolean().required(),
           mimetype: Joi.string()
             .valid("image/jpeg", "image/png", "image/gif")
-            .required(),
+            .required()
+            .messages({
+              "string.valid":
+                "Invalid image format. Supported formats: JPEG, PNG, GIF",
+            }), // Add specific message for invalid mimetype
           md5: Joi.string().required(),
           mv: Joi.function().required(),
         }),
@@ -128,20 +132,26 @@ export const productSchemas = {
               encoding: Joi.string().required(),
               tempFilePath: Joi.string().allow(""),
               truncated: Joi.boolean().required(),
-              mimetype: Joi.string()
-                .valid("image/jpeg", "image/png", "image/gif")
-                .required(),
+                mimetype: Joi.string()
+                  .valid("image/jpeg", "image/png", "image/gif")
+                  .required()
+                  .messages({
+                    "string.valid":
+                      "Invalid image format. Supported formats: JPEG, PNG, GIF",
+                  }), // Add specific message for invalid mimetype
               md5: Joi.string().required(),
               mv: Joi.function().required(),
             })
           )
           .min(1)
-          .required(), // Ensure at least one image if uploading multiple
-        Joi.allow(null, "") // Allow null for no image upload
+          .required()
+          .messages({
+            "array.min": "At least one image is required",
+          }),
+        Joi.allow(null, "") // Allow null or empty string for optional image upload
       )
       .messages({
         "any.required": "Image is required",
-        "array.min": "At least one image is required",
       }),
   }),
 };

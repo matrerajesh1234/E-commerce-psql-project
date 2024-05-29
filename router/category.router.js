@@ -11,7 +11,7 @@ router.post(
 
 router.get("/listcategory", categoryController.getAllCategories);
 router.get(
-  "/editcategory/:id",
+  "/editcategory/:id",  
   validationMiddleware({ params: categorySchemas.params }), // Param validation
   categoryController.editCategory
 );
@@ -31,4 +31,3 @@ router.delete(
 );
 
 export default router;
-  

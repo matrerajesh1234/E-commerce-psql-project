@@ -28,6 +28,8 @@ export const createProduct = async (req, res, next) => {
       throw new BadRequestError("Product already exists.");
     }
 
+    console.log(req.files);
+
     if (!req.files || !req.files.imageUrl) {
       throw new BadRequestError("Image is required");
     }
@@ -37,7 +39,6 @@ export const createProduct = async (req, res, next) => {
     if (!newProduct) {
       throw new BadRequestError("Product Not Found");
     }
-
     if (req.files && req.files.imageUrl) {
       const uploadFilePath = uploadImages(req.files, newProduct[0].id);
       const productImage = await productServices.uploadImage(
@@ -141,6 +142,13 @@ export const updateProduct = async (req, res, next) => {
     if (!checkProduct) {
       throw new NotFoundError("Product not found.");
     }
+    const [productExists] = await productServices.getProducts({
+      productName: req.body.productName,
+    });
+
+    if (productExists) {
+      throw new BadRequestError("Product with the same name already exists.");
+    }
 
     if (!req.files || !req.files.imageUrl) {
       throw new BadRequestError("Image is required");
@@ -164,8 +172,6 @@ export const updateProduct = async (req, res, next) => {
     if (req.files && req.files.imageUrl) {
       const uploadFilePaths = uploadImages(req.files, req.params.id);
       await productServices.updateImage(uploadFilePaths, req.params.id);
-    } else {
-      throw new BadRequestError("Image is required");
     }
 
     if (req.body.categoryId) {
@@ -210,14 +216,21 @@ export const deleteProduct = async (req, res, next) => {
     }
 
     const deletedImages = await productServices.productImages(checkProduct.id);
+    console.log(deletedImages);
+    console.log(deletedImages.length);
+    const productPath = `./uploads/${deletedImages[0].productId}`;
 
-    for (let image of deletedImages) {
+    deletedImages.map((image, index) => {
       const imagePath = image.imageUrl;
       try {
         fs.unlinkSync(imagePath);
       } catch (error) {
         throw new BadRequestError("Error deleting file");
       }
+    });
+
+    if (fs.existsSync(productPath)) {
+      fs.rmdirSync(productPath);
     }
 
     const deletedProduct = await productServices.deleteProduct(

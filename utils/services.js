@@ -64,6 +64,11 @@ export const rollBackTransition = async () => {
 };
 
 export const uploadImages = (files, productId) => {
+  const uploadFolder = "./uploads";
+  if (!fs.existsSync(uploadFolder)) {
+    fs.mkdirSync(uploadFolder);
+  }
+
   const folderPath = `./uploads/${productId}`;
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath);
