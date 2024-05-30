@@ -94,6 +94,25 @@ export const getProducts = async (filter = {}, operator = "and") => {
   return rows;
 };
 
+export const productExistsCheck = async (filter = {}, id, operator = "AND") => {
+  const productQuery = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 2}`;
+    })
+    .join(` ${operator} `);
+
+  const whereClause =
+    Object.keys(filter).length === 0
+      ? ""
+      : `WHERE ${productQuery} AND id <> $1`;
+
+  const values = Object.values(filter);
+  const queryParams = [id, ...values];
+  const queryString = `SELECT * FROM public.products ${whereClause} `;
+  const { rows } = await pool.query(queryString, queryParams);
+  return rows;
+};
+
 //product services for update product
 export const updateProduct = async (filter, product) => {
   const filterKey = Object.keys(filter)[0];

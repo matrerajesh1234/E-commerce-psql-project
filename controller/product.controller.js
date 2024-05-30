@@ -141,9 +141,7 @@ export const updateProduct = async (req, res, next) => {
     if (!checkProduct) {
       throw new NotFoundError("Product not found.");
     }
-    const [productExists] = await productServices.getProducts({
-      productName: req.body.productName,
-    });
+    const [productExists] = await productServices.productExistsCheck({productName:req.body.productName},req.params.id,'and');
 
     if (productExists) {
       throw new BadRequestError("Product with the same name already exists.");
