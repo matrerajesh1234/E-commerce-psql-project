@@ -12,16 +12,15 @@ export const sendResponse = (res, statusCode, message, data) => {
     data: data,
   };
 
-  if(statusCode >= 400 && data){
+  if (statusCode >= 300 && data) {
     responseData.success = false;
-    delete responseData.data
+    delete responseData.data;
   }
-  
+
   if (statusCode >= 300 && !data) {
     responseData.success = false;
     delete responseData.data;
   }
-  console.log(responseData)
   return res.status(statusCode).json(responseData);
 };
 export const paginatedResponse = (data, pageCount, limitCount, totalCount) => {

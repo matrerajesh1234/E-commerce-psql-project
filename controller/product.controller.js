@@ -28,8 +28,6 @@ export const createProduct = async (req, res, next) => {
       throw new BadRequestError("Product already exists.");
     }
 
-    console.log(req.files);
-
     if (!req.files || !req.files.imageUrl) {
       throw new BadRequestError("Image is required");
     }
@@ -120,6 +118,7 @@ export const listAllProduct = async (req, res, next) => {
 
 export const editProduct = async (req, res, next) => {
   try {
+    console.log('req.params.id :>> ', req.params.id,typeof req.params.id);
     const [editProduct] = await productServices.getProducts({
       id: req.params.id,
     });
@@ -216,8 +215,6 @@ export const deleteProduct = async (req, res, next) => {
     }
 
     const deletedImages = await productServices.productImages(checkProduct.id);
-    console.log(deletedImages);
-    console.log(deletedImages.length);
     const productPath = `./uploads/${deletedImages[0].productId}`;
 
     deletedImages.map((image, index) => {

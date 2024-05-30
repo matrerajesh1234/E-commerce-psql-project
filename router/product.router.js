@@ -12,10 +12,30 @@ router.post(
   productController.createProduct
 );
 
-router.get("/listproducts", productController.listAllProduct);
-router.get("/editproduct/:id", productController.editProduct);
+router.get(
+  "/listproducts",
+  validation.validateQueryParams,
+  validateRequest(),
+  productController.listAllProduct
+);
+router.get(
+  "/editproduct/:id",
+  validation.validateProductId,
+  validateRequest(),
+  productController.editProduct
+);
 
-router.put("/updateproduct/:id", productController.updateProduct);
-router.delete("/deleteproduct/:id", productController.deleteProduct);
+router.put(
+  "/updateproduct/:id",
+  validation.validateUpdateProduct,
+  validateRequest(),
+  productController.updateProduct
+);
+router.delete(
+  "/deleteproduct/:id",
+  validation.validateProductId,
+  validateRequest(),
+  productController.deleteProduct
+);
 
 export default router;

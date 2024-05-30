@@ -130,9 +130,10 @@ export const updateProduct = async (filter, product) => {
 };
 
 export const updateImage = async (filePaths, productId) => {
- const data  =  await pool.query(`DELETE FROM imageProducts WHERE "productId" = $1`, [
-    productId,
-  ]);
+  const data = await pool.query(
+    `DELETE FROM imageProducts WHERE "productId" = $1`,
+    [productId]
+  );
   const whereClause = filePaths
     .map((file, index) => `($${index * 2 + 1}, $${index * 2 + 2})`)
     .join(", ");

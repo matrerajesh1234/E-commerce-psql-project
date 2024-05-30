@@ -6,10 +6,9 @@ export const validateRequest = () => {
     const validationErrors = validationResult(req);
 
     if (!validationErrors.isEmpty()) {
-      const errors = validationErrors.errors.map((error) => error.msg);
-      const formattedErrors = errors.length > 1 ? errors : errors[0];
-      return sendResponse(res, 400, formattedErrors);
+      const errors = validationErrors.errors[0].msg;
+      return sendResponse(res, 400, errors);
     }
-    next(); 
+    next();
   };
 };

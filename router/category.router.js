@@ -12,8 +12,12 @@ router.post(
 );
 
 router.get("/listcategory", categoryController.getAllCategories);
-router.get("/editcategory/:id", categoryController.editCategory);
-
+router.get(
+  "/editcategory/:id",
+  validation.validateCategoryId,
+  validateRequest(),
+  categoryController.editCategory
+);
 router.put(
   "/updatecategory/:id",
   validation.validateUpdateCategory,
@@ -21,6 +25,11 @@ router.put(
   categoryController.updateCategory
 );
 
-router.delete("/deletecategory/:id", categoryController.deleteCategory);
+router.delete(
+  "/deletecategory/:id",
+  validation.validateCategoryId,
+  validateRequest(),
+  categoryController.deleteCategory
+);
 
 export default router;
