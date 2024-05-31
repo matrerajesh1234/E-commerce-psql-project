@@ -118,7 +118,6 @@ export const listAllProduct = async (req, res, next) => {
 
 export const editProduct = async (req, res, next) => {
   try {
-    console.log('req.params.id :>> ', req.params.id,typeof req.params.id);
     const [editProduct] = await productServices.getProducts({
       id: req.params.id,
     });
@@ -141,7 +140,11 @@ export const updateProduct = async (req, res, next) => {
     if (!checkProduct) {
       throw new NotFoundError("Product not found.");
     }
-    const [productExists] = await productServices.productExistsCheck({productName:req.body.productName},req.params.id,'and');
+    const [productExists] = await productServices.productExistsCheck(
+      { productName: req.body.productName },
+      req.params.id,
+      "and"
+    );
 
     if (productExists) {
       throw new BadRequestError("Product with the same name already exists.");

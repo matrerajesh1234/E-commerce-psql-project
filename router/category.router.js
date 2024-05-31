@@ -1,34 +1,39 @@
 import express from "express";
 const router = express.Router();
 import { categoryController } from "../controller/index.js";
-import * as validation from "../validation/categorySchemas.js";
+import { categorySchemas } from "../validation/index.js";
 import { validateRequest } from "../middleware/validationMiddleware.js";
+import { authentication } from "../Middleware/user.auth.js";
 
 router.post(
   "/insertcategory",
-  validation.validateCategory,
+  categorySchemas.validateCategory,
   validateRequest(),
+  authentication,
   categoryController.createCategory
 );
 
 router.get("/listcategory", categoryController.getAllCategories);
 router.get(
   "/editcategory/:id",
-  validation.validateCategoryId,
+  categorySchemas.validateCategoryId,
   validateRequest(),
+  authentication,
   categoryController.editCategory
 );
 router.put(
   "/updatecategory/:id",
-  validation.validateUpdateCategory,
+  categorySchemas.validateUpdateCategory,
   validateRequest(),
+  authentication,
   categoryController.updateCategory
 );
 
 router.delete(
   "/deletecategory/:id",
-  validation.validateCategoryId,
+  categorySchemas.validateCategoryId,
   validateRequest(),
+  authentication,
   categoryController.deleteCategory
 );
 

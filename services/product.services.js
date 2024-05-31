@@ -97,7 +97,7 @@ export const getProducts = async (filter = {}, operator = "and") => {
 export const productExistsCheck = async (filter = {}, id, operator = "AND") => {
   const productQuery = Object.entries(filter)
     .map(([key, value], i) => {
-      return `"${key}" = $${i + 2}`;
+      return `"${key}" = $${i + 2}`; // Using i + 2 because $1 is reserved for id
     })
     .join(` ${operator} `);
 
@@ -107,7 +107,8 @@ export const productExistsCheck = async (filter = {}, id, operator = "AND") => {
       : `WHERE ${productQuery} AND id <> $1`;
 
   const values = Object.values(filter);
-  const queryParams = [id, ...values];
+  const queryParams = [id, ...values]; // id first, then all filter values
+
   const queryString = `SELECT * FROM public.products ${whereClause} `;
   const { rows } = await pool.query(queryString, queryParams);
   return rows;
