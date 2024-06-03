@@ -94,6 +94,7 @@ export const listAllProduct = async (req, res, next) => {
       pagination,
       searchQuery
     );
+    console.log(productResult)
     if (!productResult) {
       throw new NotFoundError("Product not found.");
     }

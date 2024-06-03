@@ -4,7 +4,7 @@ import fs from "fs";
 import { BadRequestError } from "../error/custom.error.handler.js";
 import path from "path";
 import { response } from "express";
-import jwt from 'jsonwebtoken'
+import jwt from "jsonwebtoken";
 
 export const sendResponse = (res, statusCode, message, data) => {
   let responseData = {
@@ -13,7 +13,7 @@ export const sendResponse = (res, statusCode, message, data) => {
     data: data,
   };
 
-  if (statusCode>= 300 && data) {
+  if (statusCode >= 300 && data) {
     responseData.success = false;
     delete responseData.data;
   }
@@ -110,3 +110,5 @@ export const getJwtToken = async (id, SECRET, expire) => {
 export const verifyToken = (token, SECRET) => {
   return jwt.verify(token, SECRET);
 };
+
+

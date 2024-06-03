@@ -1,45 +1,48 @@
 import express from "express";
-const router = express();
+const router = express.Router();
 import { productController } from "../controller/index.js";
 import { productSchemas } from "../validation/index.js";
 import { validateRequest } from "../middleware/validationMiddleware.js";
-import { authentication } from "../Middleware/user.auth.js";
+import { authentication } from "../middleware/user.auth.js";
+import { Role } from "../constant/enum.js";
 
 router.post(
   "/createproduct",
-  productSchemas.validateCategoryCreation,
+  authentication([Role.admin]),
+  productSchemas.validateProductCreation,
   validateRequest(),
-  authentication,
   productController.createProduct
 );
 
 router.get(
   "/listproducts",
+  authentication([Role.admin, Role.user]),
   productSchemas.validateQueryParams,
   validateRequest(),
-  authentication,
   productController.listAllProduct
 );
+
 router.get(
   "/editproduct/:id",
+  authentication([Role.admin]),
   productSchemas.validateProductId,
   validateRequest(),
-  authentication,
   productController.editProduct
 );
 
 router.put(
   "/updateproduct/:id",
+  authentication([Role.admin]),
   productSchemas.validateUpdateProduct,
   validateRequest(),
-  authentication,
   productController.updateProduct
 );
+
 router.delete(
   "/deleteproduct/:id",
+  authentication([Role.admin]),
   productSchemas.validateProductId,
   validateRequest(),
-  authentication,
   productController.deleteProduct
 );
 

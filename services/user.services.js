@@ -59,10 +59,15 @@ export const getusers = async (filter = {}, operator = "and") => {
     .join(` ${operator} `);
 
   const whereClause =
-    Object.keys(filter).length == 0 ? " " : `and ${userQuery}`;
+    Object.keys(filter).length == 0 ? " " : `and u.${userQuery}`;
 
   const values = Object.values(filter);
-  const queryString = `select * from public.users where "isDeleted"= false ${whereClause}`;
+
+  const queryString = `
+  select u.id ,u.username ,u.email ,u."password",r."name" as role  from users u 
+  left join "role" r on r.id = u."role" 
+  where "isDeleted" = false ${whereClause}`;
+
   const { rows } = await pool.query(queryString, values);
   return rows;
 };

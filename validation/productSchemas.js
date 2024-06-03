@@ -2,7 +2,7 @@ import { body, param, query } from "express-validator";
 import { BadRequestError } from "../error/custom.error.handler.js";
 
 // Validation rules
-export const validateCategoryCreation = [
+export const validateProductCreation = [
   body("productName")
     .notEmpty()
     .withMessage("Product name is required")

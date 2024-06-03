@@ -3,27 +3,32 @@ const router = express.Router();
 import { categoryController } from "../controller/index.js";
 import { categorySchemas } from "../validation/index.js";
 import { validateRequest } from "../middleware/validationMiddleware.js";
-import { authentication } from "../Middleware/user.auth.js";
+import { authentication } from "../middleware/user.auth.js";
+import { Role } from "../constant/enum.js";
 
 router.post(
   "/insertcategory",
-  authentication,
+  authentication([Role.admin]),
   categorySchemas.validateCategory,
   validateRequest(),
   categoryController.createCategory
 );
 
-router.get("/listcategory", categoryController.getAllCategories);
+router.get(
+  "/listcategory",
+  authentication([Role.admin, Role.user]),
+  categoryController.getAllCategories
+);
 router.get(
   "/editcategory/:id",
-  authentication,
+  authentication([Role.admin]),
   categorySchemas.validateCategoryId,
   validateRequest(),
   categoryController.editCategory
 );
 router.put(
   "/updatecategory/:id",
-  authentication,
+  authentication([Role.admin]),
   categorySchemas.validateUpdateCategory,
   validateRequest(),
   categoryController.updateCategory
@@ -31,7 +36,7 @@ router.put(
 
 router.delete(
   "/deletecategory/:id",
-  authentication,
+  authentication([Role.admin]),
   categorySchemas.validateCategoryId,
   validateRequest(),
   categoryController.deleteCategory
