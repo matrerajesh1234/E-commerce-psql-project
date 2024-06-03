@@ -10,6 +10,7 @@ export const createCategory = async (req, res, next) => {
     const [checkUniqueCategory] = await categoryServices.getCategories({
       categoryName: req.body.categoryName,
     });
+    console.log(checkUniqueCategory);
 
     if (checkUniqueCategory) {
       throw new NotFoundError("Category already exists");
@@ -71,9 +72,12 @@ export const updateCategory = async (req, res, next) => {
       throw new BadRequestError("Category not found");
     }
 
-    const [categoryExists] = await categoryServices.getCategories({
-      categoryName: req.body.categoryName,
-    });
+    const [categoryExists] = await categoryServices.categoryExistsCheck(
+      {
+        categoryName: req.body.categoryName,
+      },
+      req.params.id
+    );
 
     if (categoryExists) {
       throw new BadRequestError("Category with the same name already exists.");

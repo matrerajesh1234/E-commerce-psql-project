@@ -7,33 +7,33 @@ import { authentication } from "../Middleware/user.auth.js";
 
 router.post(
   "/insertcategory",
+  authentication,
   categorySchemas.validateCategory,
   validateRequest(),
-  authentication,
   categoryController.createCategory
 );
 
 router.get("/listcategory", categoryController.getAllCategories);
 router.get(
   "/editcategory/:id",
+  authentication,
   categorySchemas.validateCategoryId,
   validateRequest(),
-  authentication,
   categoryController.editCategory
 );
 router.put(
   "/updatecategory/:id",
+  authentication,
   categorySchemas.validateUpdateCategory,
   validateRequest(),
-  authentication,
   categoryController.updateCategory
 );
 
 router.delete(
   "/deletecategory/:id",
+  authentication,
   categorySchemas.validateCategoryId,
   validateRequest(),
-  authentication,
   categoryController.deleteCategory
 );
 

@@ -20,7 +20,7 @@ export const validateUserCreation = [
 ];
 
 export const validateUserId = [
-  param("id").isNumeric().withMessage("Id must be numeric")
+  param("id").isNumeric().withMessage("Id must be numeric"),
 ];
 
 export const validateUpdateUser = [
@@ -48,5 +48,13 @@ export const validationUserLogin = [
     .withMessage("Email is required")
     .isEmail()
     .withMessage("Incorrect email format"),
-  body("password").notEmpty().withMessage("Password is required"),
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long")
+    .matches(/[!@#$%^&*(),.?":{}|<>]/)
+    .withMessage("Password must contain at least one special character")
+    .matches(/\d/)
+    .withMessage("Password must contain at least one numeric character"),
 ];

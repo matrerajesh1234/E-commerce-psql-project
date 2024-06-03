@@ -9,6 +9,24 @@ export const createCategory = async (categoryName) => {
   return rows;
 };
 
+export const categoryExistsCheck = async (
+  filter = {},
+  productid,
+  operator = "and"
+) => {
+  const categoryQuery = Object.entries(filter)
+    .map(([key, value], i) => {
+      return `"${key}" = $${i + 1}`;
+    })
+    .join(`${operator}`);
+
+  const categoryParams = Object.values(filter);
+  const queryString = `select * from categories where "isDeleted" = false and ${categoryQuery} and id <> ${productid} `;
+
+  const { rows } = await pool.query(queryString, categoryParams);
+  return rows;
+};
+
 export const updateCategory = async (
   filter,
   categoryData,
@@ -55,3 +73,4 @@ export const getCategories = async (filter = {}, operator = "and") => {
   const { rows } = await pool.query(queryString, values);
   return rows;
 };
+

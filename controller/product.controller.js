@@ -155,6 +155,7 @@ export const updateProduct = async (req, res, next) => {
     }
 
     const deletedImages = await productServices.productImages(checkProduct.id);
+    console.log(deletedImages);
     for (let image of deletedImages) {
       const imagePath = image.imageUrl;
       try {

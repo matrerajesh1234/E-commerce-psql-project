@@ -67,9 +67,10 @@ export const updateUser = async (req, res, next) => {
       throw new NotFoundError("User not found");
     }
     const [userExists] = await userServices.userExistsCheck(
-      { username: req.body.username },
-      req.params.id,
-      "and"
+      {
+        username: req.body.username,
+      },
+      req.params.id
     );
 
     if (userExists) {
@@ -121,9 +122,6 @@ export const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      throw new BadRequestError("Please Enter Email or Password"); // Corrected errorServices to BadRequestError
-    }
     const [checkUser] = await userServices.getusers(
       {
         email: req.body.email,

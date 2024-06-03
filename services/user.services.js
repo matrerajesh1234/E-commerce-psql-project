@@ -34,20 +34,20 @@ export const updateuser = async (filter, userData, operator = "and") => {
   return response;
 };
 
-export const userExistsCheck = async (filter = {}, id, operator = "AND") => {
+export const userExistsCheck = async (
+  filter = {},
+  productid,
+  operator = "and"
+) => {
   const userQuery = Object.entries(filter)
     .map(([key, value], i) => {
-      return `"${key}" = $${i + 2}`; // Using i + 2 because $1 is reserved for id
+      return `"${key}" = $${i + 1}`;
     })
-    .join(` ${operator} `);
+    .join(`${operator}`);
 
-  const whereClause =
-    Object.keys(filter).length === 0 ? "" : `WHERE ${userQuery} AND id <> $1`;
-
-  const values = Object.values(filter);
-  const queryParams = [id, ...values]; // id first, then all filter values
-  const queryString = `SELECT * FROM public.users ${whereClause} `;
-  const { rows } = await pool.query(queryString, queryParams);
+  const userParams = Object.values(filter);
+  const queryString = `select * from users where "isDeleted" = false and ${userQuery} and id <> ${productid} `;
+  const { rows } = await pool.query(queryString, userParams);
   return rows;
 };
 
