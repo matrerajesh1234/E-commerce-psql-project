@@ -94,7 +94,7 @@ export const listAllProduct = async (req, res, next) => {
       pagination,
       searchQuery
     );
-    console.log(productResult)
+    console.log(productResult);
     if (!productResult) {
       throw new NotFoundError("Product not found.");
     }
@@ -156,16 +156,16 @@ export const updateProduct = async (req, res, next) => {
     }
 
     const deletedImages = await productServices.productImages(checkProduct.id);
-    console.log(deletedImages);
     for (let image of deletedImages) {
       const imagePath = image.imageUrl;
-      try {
-        fs.unlinkSync(imagePath);
-      } catch (error) {
-        throw new BadRequestError("Error deleting file ");
+      if (fs.existsSync(imagePath)) {
+        try {
+          fs.unlinkSync(imagePath);
+        } catch (error) {
+          next(error);
+        }
       }
     }
-
     const updatedProduct = await productServices.updateProduct(
       { id: req.params.id },
       req.body
@@ -225,7 +225,7 @@ export const deleteProduct = async (req, res, next) => {
       try {
         fs.unlinkSync(imagePath);
       } catch (error) {
-        throw new BadRequestError("Error deleting file");
+        next(error);
       }
     });
 

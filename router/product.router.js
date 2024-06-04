@@ -9,40 +9,35 @@ import { Role } from "../constant/enum.js";
 router.post(
   "/createproduct",
   authentication([Role.admin]),
-  productSchemas.validateProductCreation,
-  validateRequest(),
+  validateRequest(productSchemas.validateProductCreation),
   productController.createProduct
 );
 
 router.get(
   "/listproducts",
   authentication([Role.admin, Role.user]),
-  productSchemas.validateQueryParams,
-  validateRequest(),
+  validateRequest(productSchemas.validateQueryParams),
   productController.listAllProduct
 );
 
 router.get(
   "/editproduct/:id",
   authentication([Role.admin]),
-  productSchemas.validateProductId,
-  validateRequest(),
+  validateRequest(productSchemas.validateProductId),
   productController.editProduct
 );
 
 router.put(
   "/updateproduct/:id",
   authentication([Role.admin]),
-  productSchemas.validateUpdateProduct,
-  validateRequest(),
+  validateRequest(productSchemas.validateUpdateProduct),
   productController.updateProduct
 );
 
 router.delete(
   "/deleteproduct/:id",
   authentication([Role.admin]),
-  productSchemas.validateProductId,
-  validateRequest(),
+  validateRequest(productSchemas.validateProductId),
   productController.deleteProduct
 );
 

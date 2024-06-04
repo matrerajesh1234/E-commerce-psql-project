@@ -8,8 +8,7 @@ import { Role } from "../constant/enum.js";
 
 router.post(
   "/insertuser",
-  userSchemas.validateUserCreation,
-  validateRequest(),
+  validateRequest(userSchemas.validateUserCreation),
   userController.registerUser
 );
 
@@ -21,31 +20,27 @@ router.get(
 
 router.put(
   "/update/:id",
-  userSchemas.validateUpdateUser,
-  validateRequest(),
-  authentication(Role.admin),
+  validateRequest(userSchemas.validateUpdateUser),
+  authentication([Role.admin]),
   userController.updateUser
 );
 
 router.post(
   "/login",
-  userSchemas.validationUserLogin,
-  validateRequest(),
+  validateRequest(userSchemas.validationUserLogin),
   userController.loginUser
 );
 
 router.get(
   "/edituser/:id",
   authentication([Role.admin]),
-  userSchemas.validateUserId,
-  validateRequest(),
+  validateRequest(userSchemas.validateUserId),
   userController.editUser
 );
 
 router.delete(
   "/delete/:id",
-  userSchemas.validateUserId,
-  validateRequest(),
+  validateRequest(userSchemas.validateUserId),
   authentication([Role.admin]),
   userController.deleteUser
 );

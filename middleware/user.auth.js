@@ -3,7 +3,6 @@ import { BadRequestError } from "../error/custom.error.handler.js";
 import { verifyToken } from "../utils/services.js";
 import * as userServices from "../services/user.services.js";
 import { Role } from "../constant/enum.js";
-// import { getRole } from "../services/user.services.js";
 
 export const authentication = (allowedRoles = []) => {
   return async (req, res, next) => {

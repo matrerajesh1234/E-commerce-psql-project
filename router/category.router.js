@@ -9,8 +9,7 @@ import { Role } from "../constant/enum.js";
 router.post(
   "/insertcategory",
   authentication([Role.admin]),
-  categorySchemas.validateCategory,
-  validateRequest(),
+  validateRequest(categorySchemas.validateCategory),
   categoryController.createCategory
 );
 
@@ -22,23 +21,20 @@ router.get(
 router.get(
   "/editcategory/:id",
   authentication([Role.admin]),
-  categorySchemas.validateCategoryId,
-  validateRequest(),
+  validateRequest(categorySchemas.validateCategoryId),
   categoryController.editCategory
 );
 router.put(
   "/updatecategory/:id",
   authentication([Role.admin]),
-  categorySchemas.validateUpdateCategory,
-  validateRequest(),
+  validateRequest(categorySchemas.validateUpdateCategory),
   categoryController.updateCategory
 );
 
 router.delete(
   "/deletecategory/:id",
   authentication([Role.admin]),
-  categorySchemas.validateCategoryId,
-  validateRequest(),
+  validateRequest(categorySchemas.validateCategoryId),
   categoryController.deleteCategory
 );
 

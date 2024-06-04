@@ -10,7 +10,6 @@ export const createCategory = async (req, res, next) => {
     const [checkUniqueCategory] = await categoryServices.getCategories({
       categoryName: req.body.categoryName,
     });
-    console.log(checkUniqueCategory);
 
     if (checkUniqueCategory) {
       throw new NotFoundError("Category already exists");
