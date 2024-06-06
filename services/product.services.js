@@ -133,8 +133,6 @@ export const updateProduct = async (filter, product) => {
     WHERE
       "${filterKey}" = $1;
   `;
-  console.log(product.rating)
-  console.log(typeof(product.rating))
   // Values to update and the filter value
   const values = [
     filterValue,
@@ -148,7 +146,6 @@ export const updateProduct = async (filter, product) => {
     product.brand,
   ];
   const { rows } = await pool.query(productQuery, values);
-  console.log(rows)
   return rows;
 };
 

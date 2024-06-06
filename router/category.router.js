@@ -15,7 +15,7 @@ router.post(
 
 router.get(
   "/listcategory",
-  authentication([Role.admin, Role.user]),
+  authentication([Role.admin]),
   categoryController.getAllCategories
 );
 router.get(

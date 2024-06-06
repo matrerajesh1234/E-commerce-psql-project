@@ -139,7 +139,7 @@ export const loginUser = async (req, res, next) => {
 
     const token = await getJwtToken(checkUser.id, process.env.SECRET, "5d");
 
-    return sendResponse(res, 200, "Login run", token);
+    return sendResponse(res, 200, "Login successfully", token);
   } catch (error) {
     next(error);
   }
