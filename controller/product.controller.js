@@ -74,7 +74,7 @@ export const createProduct = async (req, res, next) => {
 
     await commitTransition();
 
-    sendResponse(res, 200, "Product created successfully", newProduct);
+    sendResponse(res, 200, "Product created successfully");
     next();
   } catch (error) {
     await rollBackTransition();
@@ -94,7 +94,6 @@ export const listAllProduct = async (req, res, next) => {
       pagination,
       searchQuery
     );
-    console.log(productResult);
     if (!productResult) {
       throw new NotFoundError("Product not found.");
     }
@@ -225,7 +224,11 @@ export const deleteProduct = async (req, res, next) => {
       try {
         fs.unlinkSync(imagePath);
       } catch (error) {
-        next(error);
+        if (error.code === "ENOENT") {
+          next();
+        } else {
+          throw new BadRequestError("Error deleting image:", error); // More informative message
+        }
       }
     });
 

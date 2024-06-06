@@ -20,8 +20,8 @@ router.get(
 
 router.put(
   "/update/:id",
-  validateRequest(userSchemas.validateUpdateUser),
   authentication([Role.admin]),
+  validateRequest(userSchemas.validateUpdateUser),
   userController.updateUser
 );
 
@@ -40,8 +40,8 @@ router.get(
 
 router.delete(
   "/delete/:id",
-  validateRequest(userSchemas.validateUserId),
   authentication([Role.admin]),
+  validateRequest(userSchemas.validateUserId),
   userController.deleteUser
 );
 
