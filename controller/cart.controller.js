@@ -7,7 +7,7 @@ import {
 import { sendResponse } from "../utils/services.js";
 
 export const addToCart = async (req, res, next) => {
-  const { userId, productId, quantity } = req.body;
+  const { productId, quantity } = req.body;
 
   try {
     const checkExistsCart = await cartServices.getCartItem(
@@ -31,7 +31,11 @@ export const addToCart = async (req, res, next) => {
 
     return sendResponse(res, 200, "Product added to cart successfully");
   } catch (error) {
-    next(error);
+    if (error.message.includes("cart_productId_fkey")) {
+      return sendResponse(res, 400, "Product not found");
+    } else {
+      next(error);
+    }
   }
 };
 
