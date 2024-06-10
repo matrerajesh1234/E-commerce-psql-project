@@ -45,7 +45,10 @@ export const cartList = async (req, res, next) => {
     if (!listCart) {
       throw new BadRequestError("No items in the cart");
     }
-    return sendResponse(res, 200, "cart items", listCart);
+
+    const totalCartAmount = await cartServices.totalCartCount(listCart);
+
+    return sendResponse(res, 200, "cart items", totalCartAmount);
   } catch (error) {
     next(error);
   }

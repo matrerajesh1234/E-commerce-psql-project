@@ -1,7 +1,7 @@
 import pg from "pg";
 const Pool = pg.Pool;
 
-process.loadEnvFile('.env')
+process.loadEnvFile(".env");
 
 const pool = new Pool({
   user: process.env.DB_USER,

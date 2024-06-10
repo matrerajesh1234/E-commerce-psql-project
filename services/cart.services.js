@@ -52,7 +52,8 @@ export const getUserCartItems = async (userId) => {
         FROM imageproducts i
         WHERE i."productId" = p.id
         LIMIT 1
-      ) AS imageUrl
+      ) AS imageUrl,
+      p.price * c.quantity as "Amount"
     FROM
       products p
     LEFT JOIN
@@ -82,4 +83,13 @@ export const removeCartItem = async (userId, productId) => {
   const params = [userId, productId];
   const { rows } = await pool.query(query, params);
   return rows;
+};
+
+export const totalCartCount = async (data) => {
+  const totalAmount = data.reduce((sum, item) => sum + item.Amount, 0);
+
+  return {
+    list: data,
+    totalAmount: totalAmount,
+  };
 };

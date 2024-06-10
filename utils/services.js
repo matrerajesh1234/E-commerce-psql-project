@@ -110,5 +110,3 @@ export const getJwtToken = async (id, SECRET, expire) => {
 export const verifyToken = (token, SECRET) => {
   return jwt.verify(token, SECRET);
 };
-
-
