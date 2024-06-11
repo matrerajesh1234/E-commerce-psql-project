@@ -18,18 +18,18 @@ export const validateCreateCoupon = [
   body("quantity")
     .notEmpty()
     .withMessage("Quantity is required")
-    .isInt({ min: 1 })
+    .isInt({ min: 0 })
     .withMessage("Quantity must be a positive integer"),
 
   body("discountType")
     .notEmpty()
     .withMessage("Discount type is required")
     .isString()
-    .withMessage("Discount type must be a string"),
-
-  body("freeShipping")
-    .notEmpty()
-    .withMessage("Free shipping status is required")
-    .isBoolean()
-    .withMessage("Free shipping must be a boolean"),
+    .withMessage("Discount type must be a string")
+    .custom((value) => {
+      if (value !== "percentage" && value !== "fixed") {
+        throw new Error('Discount type must be either "percentage" or "fixed"');
+      }
+      return true;
+    }),
 ];
