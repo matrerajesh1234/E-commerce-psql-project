@@ -9,15 +9,28 @@ const router = express.Router();
 router.post(
   "/add",
   validateRequest(couponSchemas.validateCreateCoupon),
+  authentication([Role.admin]),
   couponController.createCoupon
 );
-router.get("/checkout", couponController.listCoupon);
+router.get(
+  "/checkout",
+  authentication([Role.admin, Role.user]),
+  couponController.listCoupon
+);
 router.get("/edit/:id", couponController.editCoupon);
-router.put("/update/:id", couponController.updateCoupon);
-router.delete("/delete/:id", couponController.deleteCoupon);
+router.put(
+  "/update/:id",
+  authentication([Role.admin, Role.user]),
+  couponController.updateCoupon
+);
+router.delete(
+  "/delete/:id",
+  authentication([Role.admin, Role.user]),
+  couponController.deleteCoupon
+);
 router.get(
   "/apply",
-  authentication([Role.admin]),
+  authentication([Role.admin, Role.user]),
   couponController.applyCoupon
 );
 

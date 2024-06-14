@@ -1,6 +1,11 @@
 import { sendResponse } from "../utils/services.js";
 
-import { cartServices, couponServices } from "../services/index.js";
+import {
+  cartServices,
+  categoryServices,
+  couponServices,
+  productServices,
+} from "../services/index.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -18,7 +23,24 @@ export const createCoupon = async (req, res, next) => {
       throw new BadRequestError("Code already exists");
     }
 
-    const createdCoupon = await couponServices.createCouponService(req.body);
+    const checkProductId = await productServices.getProducts({
+      id: req.body.productId,
+    });
+    if (checkProductId.length == 0) {
+      throw new BadRequestError("Product not found");
+    }
+
+    const checkCategoryId = await categoryServices.getCategories({
+      id: req.body.categoryId,
+    });
+    if (checkCategoryId.length == 0) {
+      throw new BadRequestError("Category not found");
+    }
+
+    const createdCoupon = await couponServices.createCouponService(
+      req.body,
+      req.user.id
+    );
 
     return sendResponse(res, 200, "Coupon Created Succesfully", createdCoupon);
   } catch (error) {
@@ -114,13 +136,30 @@ export const applyCoupon = async (req, res, next) => {
     if (cartItems.length === 0) {
       throw new BadRequestError("Cart item not found");
     }
+
     const orderTotal = cartItems.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
+
     const coupon = await couponServices.isCouponValid(couponCode);
     if (!coupon) {
-      throw new BadRequestError("Invalid or expire coupon");
+      throw new BadRequestError("Invalid or expired coupon");
+    }
+
+    const restrictions = await couponServices.getCouponRestrictions(coupon.id);
+    if (restrictions) {
+      const isValid = couponServices.validateCouponRestrictions(
+        coupon,
+        restrictions,
+        cartItems,
+        orderTotal
+      );
+      if (!isValid) {
+        throw new BadRequestError(
+          "Coupon is not applicable to the current order"
+        );
+      }
     }
 
     const { discountedTotal, discountApplied } = couponServices.applyDiscount(
@@ -128,11 +167,15 @@ export const applyCoupon = async (req, res, next) => {
       coupon
     );
 
+    // Log coupon usage
+    await couponServices.recordCouponUsage(coupon.id, req.user.id);
+
     const finalShippingCost = Number(
       req.body.shippingCost ? req.body.shippingCost : 0
     );
 
-    const decrementQuantity = await couponServices.updateQuantity(coupon.id);
+    await couponServices.updateQuantity(coupon.id);
+
     return sendResponse(res, 200, {
       originalTotal: orderTotal,
       discountApplied: discountApplied,

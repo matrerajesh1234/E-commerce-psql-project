@@ -8,7 +8,6 @@ import { sendResponse } from "../utils/services.js";
 
 export const addToCart = async (req, res, next) => {
   const { productId, quantity } = req.body;
-
   try {
     const checkExistsCart = await cartServices.getCartItem(
       req.user.id,
@@ -31,11 +30,7 @@ export const addToCart = async (req, res, next) => {
 
     return sendResponse(res, 200, "Product added to cart successfully");
   } catch (error) {
-    if (error.message.includes("cart_productId_fkey")) {
-      return sendResponse(res, 400, "Product not found");
-    } else {
-      next(error);
-    }
+    next(error);
   }
 };
 
@@ -75,6 +70,7 @@ export const editCart = async (req, res, next) => {
       req.user.id,
       req.params.id
     );
+    console.log(checkExistsCart);
 
     if (checkExistsCart.length === 0) {
       throw new BadRequestError("Item not found in cart");

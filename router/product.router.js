@@ -15,7 +15,7 @@ router.post(
 
 router.get(
   "/listproducts",
-  authentication([Role.admin]),
+  authentication([Role.admin, Role.user]),
   validateRequest(productSchemas.validateQueryParams),
   productController.listAllProduct
 );

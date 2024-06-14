@@ -1,9 +1,9 @@
 import pool from "../config/database.js";
 
-export const createCouponService = async (body) => {
+export const createCouponService = async (body, userId) => {
   const query = `
-    INSERT INTO coupons (name, code, "startDate", "endDate", quantity, "discountValue","discountType")
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO coupons (name, code, "startDate", "endDate", quantity, "discountValue","discountType","minimumSpend","maximumSpend","perLimit","perCustomer","productId","categoryId","userId")
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12 ,$13, $14)
     RETURNING *;
   `;
   const params = [
@@ -14,6 +14,13 @@ export const createCouponService = async (body) => {
     body.quantity, // Ensure quantity is an integer
     body.discountValue,
     body.discountType,
+    body.minimumSpend,
+    body.maximumSpend,
+    body.perLimit,
+    body.perCustomer,
+    body.productId,
+    body.categoryId,
+    userId,
   ];
 
   const { rows } = await pool.query(query, params);
@@ -61,6 +68,7 @@ export const updateCouponService = async (
     SET ${categoryWhereClause}
     WHERE "isDeleted" = false and ${filterWhereClause};
   `;
+  console.log(queryText);
   const queryValues = [...filterValues, ...categoryValues];
   const response = await pool.query(queryText, queryValues);
   return response;
@@ -127,4 +135,86 @@ export const updateQuantity = async (couponId) => {
     [couponId]
   );
   return rows;
+};
+
+export const getCouponRestrictions = async (couponId) => {
+  const query = `SELECT * FROM coupon_restrictions WHERE "couponId" = $1`;
+  const params = [couponId];
+  const { rows } = await pool.query(query, params);
+  return rows;
+};
+
+export const validateCouponRestrictions = (
+  coupon,
+  restrictions,
+  cartItems,
+  orderTotal
+) => {
+  const restrictedProductIds = restrictions
+    .filter((r) => {
+      return r.productId;
+    })
+    .map((r) => r.productId);
+
+  const restrictedCategoryIds = restrictions
+    .filter((r) => r.categoryId)
+    .map((r) => r.categoryId);
+
+  const cartProductIds = cartItems.map((item) => item.productId);
+  const cartCategoryIds = cartItems.map((item) => item.categoryId);
+
+  if (restrictedProductIds.length > 0) {
+    let foundProduct = false;
+    for (let i = 0; i < cartProductIds.length; i++) {
+      if (restrictedProductIds.includes(cartProductIds[i])) {
+        foundProduct = true;
+        break;
+      }
+    }
+    if (!foundProduct) {
+      console.log("No restricted products found in the cart.");
+      return false;
+    }
+  }
+  // Check for restricted categories in the cart
+  if (restrictedCategoryIds.length > 0) {
+    let foundCategory = false;
+    for (let i = 0; i < cartCategoryIds.length; i++) {
+      if (restrictedCategoryIds.includes(cartCategoryIds[i])) {
+        foundCategory = true;
+        break;
+      }
+    }
+    if (!foundCategory) {
+      console.log("No restricted categories found in the cart.");
+      return false;
+    }
+  }
+  // Validate minimum and maximum spend
+  if (coupon.minimumSpend && orderTotal < coupon.minimumSpend) {
+    return false;
+  }
+  if (coupon.maximumSpend && orderTotal > coupon.maximumSpend) {
+    return false;
+  }
+  return true;
+};
+
+export const recordCouponUsage = async (couponId, userId) => {
+  const existingUsage = await pool.query(
+    `SELECT * FROM coupon_usages WHERE "couponId" = $1 AND "userId" = $2`,
+    [couponId, userId]
+  );
+
+  if (!existingUsage.rowCount == 0) {
+    await pool.query(
+      `UPDATE coupon_usages SET "usageCount" = "usageCount" + 1 WHERE "couponId" = $1 AND "userId" = $2`,
+      [couponId, userId]
+    );
+  } else {
+    await pool.query(
+      `INSERT INTO coupon_usages ("couponId", "userId", "usageCount") VALUES ($1, $2, 1)`,
+      [couponId, userId]
+    );
+  }
 };

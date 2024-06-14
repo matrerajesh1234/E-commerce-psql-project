@@ -32,4 +32,30 @@ export const validateCreateCoupon = [
       }
       return true;
     }),
+  body("minimumSpend")
+    .exists()
+    .withMessage("minimumSpend is required")
+    .isNumeric()
+    .withMessage("minimumSpend must be a number"),
+
+  // Validate maximumSpend
+  body("maximumSpend")
+    .exists()
+    .withMessage("maximumSpend is required")
+    .isNumeric()
+    .withMessage("maximumSpend must be a number"),
+
+  // Validate perLimit
+  body("perLimit")
+    .exists()
+    .withMessage("perLimit is required")
+    .isInt({ min: 1 })
+    .withMessage("perLimit must be a positive integer"),
+
+  // Validate perCustomer
+  body("perCustomer")
+    .exists()
+    .withMessage("perCustomer is required")
+    .isInt({ min: 1 })
+    .withMessage("perCustomer must be a positive integer"),
 ];
