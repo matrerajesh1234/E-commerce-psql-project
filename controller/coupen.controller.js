@@ -81,7 +81,6 @@ export const updateCoupon = async (req, res, next) => {
     const [Coupon] = await couponServices.getCouponsService({
       id: req.params.id,
     });
-    console.log(Coupon);
     if (!Coupon) {
       throw new BadRequestError("Coupon not found");
     }
@@ -146,7 +145,6 @@ export const applyCoupon = async (req, res, next) => {
     if (!coupon) {
       throw new BadRequestError("Invalid or expired coupon");
     }
-
     const restrictions = await couponServices.getCouponRestrictions(coupon.id);
     if (restrictions) {
       const isValid = couponServices.validateCouponRestrictions(

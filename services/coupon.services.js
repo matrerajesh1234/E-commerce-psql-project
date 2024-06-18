@@ -68,7 +68,6 @@ export const updateCouponService = async (
     SET ${categoryWhereClause}
     WHERE "isDeleted" = false and ${filterWhereClause};
   `;
-  console.log(queryText);
   const queryValues = [...filterValues, ...categoryValues];
   const response = await pool.query(queryText, queryValues);
   return response;
@@ -91,12 +90,11 @@ export const checkCouponCodeExist = async (
   return rows;
 };
 
-export const isCouponValid = async (couponCode) => {
-  const { rows } = await pool.query(
-    `SELECT * FROM public.coupons WHERE code = $1 AND "isDeleted" = false AND "isActive" = true`,
-    [couponCode]
-  );
-
+export const isCouponValid = async (couponCode, userId) => {
+  const couponQuery = `
+    SELECT * FROM public.coupons WHERE code = $1 AND "isDeleted" = false AND "isActive" = true;
+  `;
+  const { rows } = await pool.query(couponQuery, [couponCode]);
   if (rows.length === 0) {
     return null;
   }
@@ -105,6 +103,7 @@ export const isCouponValid = async (couponCode) => {
   const currentDate = new Date();
   const startDate = new Date(coupon.startDate);
   const endDate = new Date(coupon.endDate);
+
   if (
     startDate > currentDate ||
     endDate < currentDate ||
@@ -112,6 +111,7 @@ export const isCouponValid = async (couponCode) => {
   ) {
     return null;
   }
+
   return coupon;
 };
 
@@ -138,7 +138,7 @@ export const updateQuantity = async (couponId) => {
 };
 
 export const getCouponRestrictions = async (couponId) => {
-  const query = `SELECT * FROM coupon_restrictions WHERE "couponId" = $1`;
+  const query = `SELECT * FROM coupons WHERE "id" = $1`;
   const params = [couponId];
   const { rows } = await pool.query(query, params);
   return rows;
@@ -151,9 +151,7 @@ export const validateCouponRestrictions = (
   orderTotal
 ) => {
   const restrictedProductIds = restrictions
-    .filter((r) => {
-      return r.productId;
-    })
+    .filter((r) => r.productId)
     .map((r) => r.productId);
 
   const restrictedCategoryIds = restrictions
@@ -163,20 +161,6 @@ export const validateCouponRestrictions = (
   const cartProductIds = cartItems.map((item) => item.productId);
   const cartCategoryIds = cartItems.map((item) => item.categoryId);
 
-  if (restrictedProductIds.length > 0) {
-    let foundProduct = false;
-    for (let i = 0; i < cartProductIds.length; i++) {
-      if (restrictedProductIds.includes(cartProductIds[i])) {
-        foundProduct = true;
-        break;
-      }
-    }
-    if (!foundProduct) {
-      console.log("No restricted products found in the cart.");
-      return false;
-    }
-  }
-  // Check for restricted categories in the cart
   if (restrictedCategoryIds.length > 0) {
     let foundCategory = false;
     for (let i = 0; i < cartCategoryIds.length; i++) {
@@ -186,7 +170,7 @@ export const validateCouponRestrictions = (
       }
     }
     if (!foundCategory) {
-      console.log("No restricted categories found in the cart.");
+      console.log("Coupon is not applicable to the current order categories.");
       return false;
     }
   }
@@ -197,23 +181,24 @@ export const validateCouponRestrictions = (
   if (coupon.maximumSpend && orderTotal > coupon.maximumSpend) {
     return false;
   }
+
   return true;
 };
 
 export const recordCouponUsage = async (couponId, userId) => {
   const existingUsage = await pool.query(
-    `SELECT * FROM coupon_usages WHERE "couponId" = $1 AND "userId" = $2`,
+    `SELECT * FROM coupons WHERE "id" = $1 AND "userId" = $2`,
     [couponId, userId]
   );
 
   if (!existingUsage.rowCount == 0) {
     await pool.query(
-      `UPDATE coupon_usages SET "usageCount" = "usageCount" + 1 WHERE "couponId" = $1 AND "userId" = $2`,
+      `UPDATE coupons SET "usageCount" = "usageCount" + 1 WHERE "id" = $1 AND "userId" = $2`,
       [couponId, userId]
     );
   } else {
     await pool.query(
-      `INSERT INTO coupon_usages ("couponId", "userId", "usageCount") VALUES ($1, $2, 1)`,
+      `INSERT INTO coupons ("id", "userId", "usageCount") VALUES ($1, $2, 1)`,
       [couponId, userId]
     );
   }

@@ -7,7 +7,7 @@ import {
 import { sendResponse } from "../utils/services.js";
 
 export const addToCart = async (req, res, next) => {
-  const { productId, quantity } = req.body;
+  const { productId, categoryId, quantity } = req.body;
   try {
     const checkExistsCart = await cartServices.getCartItem(
       req.user.id,
@@ -18,12 +18,14 @@ export const addToCart = async (req, res, next) => {
       const updateCartItem = await cartServices.updateCartItem(
         req.user.id,
         productId,
+        categoryId,
         quantity
       );
     } else {
       const addProduct = await cartServices.addCartItem(
         req.user.id,
         productId,
+        categoryId,
         quantity
       );
     }
@@ -70,7 +72,6 @@ export const editCart = async (req, res, next) => {
       req.user.id,
       req.params.id
     );
-    console.log(checkExistsCart);
 
     if (checkExistsCart.length === 0) {
       throw new BadRequestError("Item not found in cart");

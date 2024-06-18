@@ -1,37 +1,46 @@
 import pool from "../config/database.js";
 
 // Function to get a specific cart item for a user
-export const getCartItem = async (userId, id) => {
+export const getCartItem = async (userId, productId) => {
   const query = `
     SELECT * FROM public.cart
-    WHERE "userId" = $1 AND "id" = $2 
+    WHERE "userId" = $1 AND "productId" = $2 
   `;
-  const params = [userId, id];
-  console.log(query, params);
+  const params = [userId, productId];
   const { rows } = await pool.query(query, params);
   return rows;
 };
 
 // Function to update the quantity of a product in the user's cart
-export const updateCartItem = async (userId, productId, quantity = 1) => {
+export const updateCartItem = async (
+  userId,
+  productId,
+  categoryId,
+  quantity
+) => {
   const query = `
     UPDATE public.cart
-    SET quantity = $3
-    WHERE "userId" = $1 AND "productId" = $2 
+    SET "userId" = $1, "productId" = $2, "categoryId" = $3, quantity = $4
+    WHERE "userId" = $5 AND "productId" = $6
     RETURNING *
   `;
-  const params = [userId, productId, quantity];
-  const { rows: updatedRows } = await pool.query(query, params);
-  return updatedRows;
+  const params = [userId, productId, categoryId, quantity, userId, productId];
+  const { rows } = await pool.query(query, params);
+  return rows;
 };
 
-export const addCartItem = async (userId, productId, quantity = 1) => {
+export const addCartItem = async (
+  userId,
+  productId,
+  categoryId,
+  quantity = 1
+) => {
   const query = `
-    INSERT INTO public.cart ("userId", "productId", quantity)
-    VALUES ($1, $2, $3)
+    INSERT INTO public.cart ("userId", "productId","categoryId", quantity)
+    VALUES ($1, $2,$3,$4)
     RETURNING *
   `;
-  const params = [userId, productId, quantity];
+  const params = [userId, productId, categoryId, quantity];
   const { rows: insertedRows } = await pool.query(query, params);
   return insertedRows;
 };
@@ -42,7 +51,7 @@ export const getUserCartItems = async (userId) => {
       c.id,
       c."userId",
       c."productId",
-      pcr."categoryId",
+      c."categoryId",
       p."productName",
       p."description",
       p.color,
@@ -82,7 +91,7 @@ export const clearUserCart = async (userId) => {
 
 export const removeCartItem = async (userId, id) => {
   const query = `
-    DELETE FROM cart
+    DELETE FROM public.cart
     WHERE "userId" = $1 AND "id" = $2
   `;
   const params = [userId, id];
