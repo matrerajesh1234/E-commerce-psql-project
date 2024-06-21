@@ -45,7 +45,7 @@ export const addCartItem = async (
   return insertedRows;
 };
 
-export const getUserCartItems = async (userId) => {
+export const getUserCartItems = async (userId, categoryId) => {
   const query = `
     SELECT
       c.id,
@@ -89,12 +89,12 @@ export const clearUserCart = async (userId) => {
   return rows;
 };
 
-export const removeCartItem = async (userId, id) => {
+export const removeCartItem = async (userId, productId) => {
   const query = `
     DELETE FROM public.cart
-    WHERE "userId" = $1 AND "id" = $2
+    WHERE "userId" = $1 AND "productId" = $2
   `;
-  const params = [userId, id];
+  const params = [userId, productId];
   const { rows } = await pool.query(query, params);
   return rows;
 };

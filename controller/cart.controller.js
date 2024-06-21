@@ -1,6 +1,7 @@
 import { BadRequestError } from "../error/custom.error.handler.js";
 import {
   cartServices,
+  categoryServices,
   productServices,
   userServices,
 } from "../services/index.js";
@@ -9,10 +10,27 @@ import { sendResponse } from "../utils/services.js";
 export const addToCart = async (req, res, next) => {
   const { productId, categoryId, quantity } = req.body;
   try {
+    const checkProductExists = await productServices.getProducts({
+      id: productId,
+    });
+
+    if (!checkProductExists) {
+      throw new BadRequestError("Product is not found");
+    }
+
+    const checkCategoryExists = await categoryServices.getCategories({
+      id: categoryId,
+    });
+
+    if (checkCategoryExists.length == 0) {
+      throw new BadRequestError("Category is not found");
+    }
+
     const checkExistsCart = await cartServices.getCartItem(
       req.user.id,
       productId
     );
+    console.log(checkExistsCart);
 
     if (checkExistsCart.length > 0) {
       const updateCartItem = await cartServices.updateCartItem(
@@ -72,7 +90,7 @@ export const editCart = async (req, res, next) => {
       req.user.id,
       req.params.id
     );
-
+    console.log(checkExistsCart);
     if (checkExistsCart.length === 0) {
       throw new BadRequestError("Item not found in cart");
     }

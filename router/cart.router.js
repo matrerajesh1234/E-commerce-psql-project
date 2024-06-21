@@ -21,6 +21,7 @@ router.get(
 router.delete(
   "/editcart/:id",
   authentication([Role.admin, Role.user]),
+  validateRequest(cartSchemas.validateCartId),
   cartController.editCart
 );
 

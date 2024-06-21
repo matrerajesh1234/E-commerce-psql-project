@@ -10,7 +10,6 @@ import {
   BadRequestError,
   NotFoundError,
 } from "../error/custom.error.handler.js";
-import pool from "../config/database.js";
 
 export const createCoupon = async (req, res, next) => {
   try {
@@ -26,6 +25,7 @@ export const createCoupon = async (req, res, next) => {
     const checkProductId = await productServices.getProducts({
       id: req.body.productId,
     });
+
     if (checkProductId.length == 0) {
       throw new BadRequestError("Product not found");
     }
@@ -33,6 +33,7 @@ export const createCoupon = async (req, res, next) => {
     const checkCategoryId = await categoryServices.getCategories({
       id: req.body.categoryId,
     });
+
     if (checkCategoryId.length == 0) {
       throw new BadRequestError("Category not found");
     }
@@ -132,6 +133,7 @@ export const applyCoupon = async (req, res, next) => {
   const { couponCode } = req.body;
   try {
     const cartItems = await cartServices.getUserCartItems(req.user.id);
+
     if (cartItems.length === 0) {
       throw new BadRequestError("Cart item not found");
     }
@@ -145,7 +147,8 @@ export const applyCoupon = async (req, res, next) => {
     if (!coupon) {
       throw new BadRequestError("Invalid or expired coupon");
     }
-    const restrictions = await couponServices.getCouponRestrictions(coupon.id);
+    const restrictions = await couponServices.getCoupon(coupon.id);
+
     if (restrictions) {
       const isValid = couponServices.validateCouponRestrictions(
         coupon,

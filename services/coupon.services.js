@@ -137,7 +137,7 @@ export const updateQuantity = async (couponId) => {
   return rows;
 };
 
-export const getCouponRestrictions = async (couponId) => {
+export const getCoupon = async (couponId) => {
   const query = `SELECT * FROM coupons WHERE "id" = $1`;
   const params = [couponId];
   const { rows } = await pool.query(query, params);
@@ -161,6 +161,23 @@ export const validateCouponRestrictions = (
   const cartProductIds = cartItems.map((item) => item.productId);
   const cartCategoryIds = cartItems.map((item) => item.categoryId);
 
+  // Ensure the coupon is applicable only if all items belong to the specified category
+  if (coupon.categoryId) {
+    let allItemsInCategory = true;
+    for (let i = 0; i < cartCategoryIds.length; i++) {
+      if (cartCategoryIds[i] !== coupon.categoryId) {
+        allItemsInCategory = false;
+        break;
+      }
+    }
+    if (!allItemsInCategory) {
+      console.log(
+        "Coupon is not applicable because not all items belong to the specified category."
+      );
+      return false;
+    }
+  }
+
   if (restrictedCategoryIds.length > 0) {
     let foundCategory = false;
     for (let i = 0; i < cartCategoryIds.length; i++) {
@@ -174,6 +191,7 @@ export const validateCouponRestrictions = (
       return false;
     }
   }
+
   // Validate minimum and maximum spend
   if (coupon.minimumSpend && orderTotal < coupon.minimumSpend) {
     return false;
