@@ -22,13 +22,13 @@ export const createCoupon = async (req, res, next) => {
       throw new BadRequestError("Code already exists");
     }
 
-    const checkProductId = await productServices.getProducts({
-      id: req.body.productId,
-    });
+    // const checkProductId = await productServices.getProducts({
+    //   id: req.body.productId,
+    // });
 
-    if (checkProductId.length == 0) {
-      throw new BadRequestError("Product not found");
-    }
+    // if (checkProductId.length == 0) {
+    //   throw new BadRequestError("Product not found");
+    // }
 
     const checkCategoryId = await categoryServices.getCategories({
       id: req.body.categoryId,
@@ -129,62 +129,62 @@ export const deleteCoupon = async (req, res, next) => {
   }
 };
 
-export const applyCoupon = async (req, res, next) => {
-  const { couponCode } = req.body;
-  try {
-    const cartItems = await cartServices.getUserCartItems(req.user.id);
+// export const applyCoupon = async (req, res, next) => {
+//   const { couponCode } = req.body;
+//   try {
+//     const cartItems = await cartServices.getUserCartItems(req.user.id);
 
-    if (cartItems.length === 0) {
-      throw new BadRequestError("Cart item not found");
-    }
+//     if (cartItems.length === 0) {
+//       throw new BadRequestError("Cart item not found");
+//     }
 
-    const orderTotal = cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
+//     const orderTotal = cartItems.reduce(
+//       (total, item) => total + item.price * item.quantity,
+//       0
+//     );
 
-    const coupon = await couponServices.isCouponValid(couponCode);
-    if (!coupon) {
-      throw new BadRequestError("Invalid or expired coupon");
-    }
-    const restrictions = await couponServices.getCoupon(coupon.id);
+//     const coupon = await couponServices.isCouponValid(couponCode);
+//     if (!coupon) {
+//       throw new BadRequestError("Invalid or expired coupon");
+//     }
+//     const restrictions = await couponServices.getCoupon(coupon.id);
 
-    if (restrictions) {
-      const isValid = couponServices.validateCouponRestrictions(
-        coupon,
-        restrictions,
-        cartItems,
-        orderTotal
-      );
-      if (!isValid) {
-        throw new BadRequestError(
-          "Coupon is not applicable to the current order"
-        );
-      }
-    }
+//     if (restrictions) {
+//       const isValid = couponServices.validateCouponRestrictions(
+//         coupon,
+//         restrictions,
+//         cartItems,
+//         orderTotal
+//       );
+//       if (!isValid) {
+//         throw new BadRequestError(
+//           "Coupon is not applicable to the current order"
+//         );
+//       }
+//     }
 
-    const { discountedTotal, discountApplied } = couponServices.applyDiscount(
-      orderTotal,
-      coupon
-    );
+//     const { discountedTotal, discountApplied } = couponServices.applyDiscount(
+//       orderTotal,
+//       coupon
+//     );
 
-    // Log coupon usage
-    await couponServices.recordCouponUsage(coupon.id, req.user.id);
+//     // Log coupon usage
+//     await couponServices.recordCouponUsage(coupon.id, req.user.id);
 
-    const finalShippingCost = Number(
-      req.body.shippingCost ? req.body.shippingCost : 0
-    );
+//     const finalShippingCost = Number(
+//       req.body.shippingCost ? req.body.shippingCost : 0
+//     );
 
-    await couponServices.updateQuantity(coupon.id);
+//     await couponServices.updateQuantity(coupon.id);
 
-    return sendResponse(res, 200, {
-      originalTotal: orderTotal,
-      discountApplied: discountApplied,
-      discountedTotal: discountedTotal,
-      shippingCost: finalShippingCost,
-      GrandTotal: discountedTotal + finalShippingCost,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+//     return sendResponse(res, 200, {
+//       originalTotal: orderTotal,
+//       discountApplied: discountApplied,
+//       discountedTotal: discountedTotal,
+//       shippingCost: finalShippingCost,
+//       GrandTotal: discountedTotal + finalShippingCost,
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };

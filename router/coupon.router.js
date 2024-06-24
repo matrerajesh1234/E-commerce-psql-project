@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post(
   "/add",
-  validateRequest(couponSchemas.validateCreateCoupon),
+  validateRequest(couponSchemas.validateCoupon),
   authentication([Role.admin]),
   couponController.createCoupon
 );
@@ -20,6 +20,7 @@ router.get(
 router.get("/edit/:id", couponController.editCoupon);
 router.put(
   "/update/:id",
+  validateRequest(couponSchemas.validateCoupon),
   authentication([Role.admin, Role.user]),
   couponController.updateCoupon
 );
@@ -28,10 +29,10 @@ router.delete(
   authentication([Role.admin, Role.user]),
   couponController.deleteCoupon
 );
-router.get(
-  "/apply",
-  authentication([Role.admin, Role.user]),
-  couponController.applyCoupon
-);
+// router.get(
+//   "/apply",
+//   authentication([Role.admin, Role.user]),
+//   couponController.applyCoupon
+// );
 
 export default router;

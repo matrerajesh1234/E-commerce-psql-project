@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 
-export const validateCreateCoupon = [
+export const validateCoupon = [
   body("name")
     .notEmpty()
     .withMessage("Name is required")
@@ -15,6 +15,7 @@ export const validateCreateCoupon = [
 
   body("startDate").notEmpty().withMessage("Start date is required"),
   body("endDate").notEmpty().withMessage("End date is required"),
+
   body("quantity")
     .notEmpty()
     .withMessage("Quantity is required")
@@ -32,6 +33,12 @@ export const validateCreateCoupon = [
       }
       return true;
     }),
+  body("discountValue")
+    .notEmpty()
+    .withMessage("Discount value is required")
+    .isInt({ min: 0 })
+    .withMessage("Discount value must be a positive integer"),
+
   body("minimumSpend")
     .exists()
     .withMessage("minimumSpend is required")
