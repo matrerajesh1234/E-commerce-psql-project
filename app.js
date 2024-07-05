@@ -4,6 +4,8 @@ import { connectDatabase } from "./config/database.js";
 import indexRouter from "./router/index.js";
 import errorHandler from "./error/error.handler.js";
 import fileUpload from "express-fileupload";
+import { expressMiddleware } from "@apollo/server/express4";
+import { server } from "./graphql/schema.js";
 
 process.loadEnvFile(".env");
 connectDatabase();
@@ -15,6 +17,8 @@ app.use(fileUpload());
 app.use("/", indexRouter);
 //static files
 app.use("/uploads", express.static("uploads"));
+await server.start();
+app.use("/graphql", expressMiddleware(server));
 
 app.use(errorHandler);
 

@@ -112,7 +112,9 @@ export const listAllProduct = async (req, res, next) => {
       paginatedData
     );
   } catch (error) {
-    next(error);
+    // next(error);
+    console.log(error.message);
+    throw new Error("Failed for list products");
   }
 };
 
@@ -121,6 +123,7 @@ export const editProduct = async (req, res, next) => {
     const [editProduct] = await productServices.getProducts({
       id: req.params.id,
     });
+    console.log(editProduct);
     if (!editProduct) {
       throw new NotFoundError("Product not found.");
     }
